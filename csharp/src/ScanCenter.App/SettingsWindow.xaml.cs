@@ -35,13 +35,7 @@ public partial class SettingsWindow : Window
         JpegSlider.Value = s.JpegQuality;
         JpegValue.Text = s.JpegQuality.ToString(CultureInfo.InvariantCulture);
         JpegSlider.ValueChanged += (_, _) => JpegValue.Text = ((int)JpegSlider.Value).ToString(CultureInfo.InvariantCulture);
-        OcrBox.Items.Add(new ComboBoxItem { Content = "Windows display language", Tag = "" });
-        var langs = Ocr.Languages();
-        foreach (var (tag, name) in langs) OcrBox.Items.Add(new ComboBoxItem { Content = name, Tag = tag });
-        SelectTag(OcrBox, s.OcrLanguage);
-        OcrNote.Text = langs.Count == 0
-            ? "No text recognition language is installed. Add one in Windows Settings > Time & language > Language & region."
-            : $"Installed in Windows: {string.Join(", ", langs.Select(l => l.Name))}. More can be added in Windows Settings > Time & language > Language & region.";
+        FillOcr(s.OcrLanguage);
         SoundBox.IsChecked = s.Sound;
         NotifyBox.IsChecked = s.Notify;
 
@@ -77,6 +71,25 @@ public partial class SettingsWindow : Window
     private static object? TagOf(ComboBox box) => (box.SelectedItem as ComboBoxItem)?.Tag;
 
     private int Port => int.TryParse(PortBox.Text.Trim(), out var p) && p is > 0 and < 65536 ? p : 6566;
+
+    private void FillOcr(string selected)
+    {
+        OcrBox.Items.Clear();
+        OcrBox.Items.Add(new ComboBoxItem { Content = "Windows display language", Tag = "" });
+        var langs = Ocr.Languages().OrderBy(l => l.Name, StringComparer.CurrentCulture).ToList();
+        foreach (var (tag, name) in langs) OcrBox.Items.Add(new ComboBoxItem { Content = name, Tag = tag });
+        SelectTag(OcrBox, selected);
+        OcrNote.Text = langs.Count == 0
+            ? "No text recognition language is installed. Click Manage languages… to add some."
+            : $"Installed: {string.Join(", ", langs.Select(l => l.Name))}. Click Manage languages… to add more.";
+    }
+
+    private void OcrLanguages_Click(object sender, RoutedEventArgs e)
+    {
+        var w = new OcrLanguagesWindow { Owner = this };
+        w.ShowDialog();
+        if (w.Changed) FillOcr(TagOf(OcrBox) as string ?? "");
+    }
 
     private void BrowseRoot_Click(object sender, RoutedEventArgs e)
     {

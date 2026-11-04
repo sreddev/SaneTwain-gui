@@ -61,7 +61,11 @@
                         <Slider x:Name="JpegSlider" Minimum="50" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" />
                     </DockPanel>
                     <TextBlock Text="Text recognition (OCR) language" Style="{StaticResource FieldLabel}" />
-                    <ComboBox x:Name="OcrBox" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Manage languages…" Margin="8,0,0,0" Click="OcrLanguages_Click"
+                                ToolTip="Install or remove text recognition languages in Windows" />
+                        <ComboBox x:Name="OcrBox" />
+                    </DockPanel>
                     <TextBlock x:Name="OcrNote" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0" />
                     <CheckBox x:Name="SoundBox" Content="Play a sound when a file is saved" Margin="0,12,0,0" />
                     <CheckBox x:Name="NotifyBox" Content="Show a notification when a file is saved" />

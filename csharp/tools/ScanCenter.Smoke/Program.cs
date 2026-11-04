@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using ScanCenter.Core;
 
@@ -12,6 +13,29 @@ class Program
     static int Main(string[] args)
     {
         if (args.Length > 1 && args[0] == "--ocr-test") return OcrTest(args[1]);
+        if (args.Length > 1 && args[0] == "--ocr-install")
+        {
+            // Same code path as Settings > Manage languages: one elevated PowerShell, exit code = failures.
+            var r = OcrPacks.ChangeAsync(args[1].Split(','), Array.Empty<string>()).GetAwaiter().GetResult();
+            Console.WriteLine($"cancelled={r.Cancelled} failed={r.Failed} problem={r.Problem}");
+            foreach (var (tag, name) in Ocr.Languages()) Console.WriteLine($"{tag}\t{name}");
+            return 0;
+        }
+        if (args.Length > 0 && args[0] == "--ocr-languages")
+        {
+            foreach (var (tag, name) in Ocr.Languages()) Console.WriteLine($"{tag}\t{name}");
+            Console.WriteLine("Packs marked installed: " + string.Join(", ", OcrPacks.All().Where(p => p.Installed).Select(p => p.Tag)));
+            Console.WriteLine("Restart pending: " + OcrPacks.RestartPending());
+            if (Array.IndexOf(args, "--watch") < 0) return 0;
+            // Keep one process alive and report changes: shows whether newly installed packs appear without a restart.
+            var last = string.Join(",", Ocr.Languages().Select(l => l.Tag));
+            while (true)
+            {
+                Thread.Sleep(5000);
+                var now = string.Join(",", Ocr.Languages().Select(l => l.Tag));
+                if (now != last) { Console.WriteLine($"{DateTime.Now:HH:mm:ss} {now}"); last = now; }
+            }
+        }
         var host = args.Length > 0 ? args[0] : "192.168.254.1";
         var outDir = args.Length > 1 ? args[1] : Path.Combine(Path.GetTempPath(), "scancenter-smoke");
         var c = new ConnectionInfo(host, 6566, "sauron", "");

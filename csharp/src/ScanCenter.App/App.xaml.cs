@@ -68,8 +68,16 @@ public partial class App : Application
                 var sw = new SettingsWindow(Settings, null) { Owner = win };
                 sw.Show();
                 if (args.Contains("--printer-tab")) sw.Tabs.SelectedIndex = 4;
+                if (args.Contains("--saving-tab")) sw.Tabs.SelectedIndex = 2;
                 sw.UpdateLayout();
                 target = sw;
+            }
+            if (args.Contains("--ocr-languages"))
+            {
+                var ow = new OcrLanguagesWindow { Owner = win };
+                ow.Show();
+                ow.UpdateLayout();
+                target = ow;
             }
             win.Dispatcher.BeginInvoke(() =>
             {

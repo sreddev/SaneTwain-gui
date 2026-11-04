@@ -172,8 +172,14 @@ already saved stay where they are.
   Thunderbird and other programs that support Simple MAPI). If none answers, the file is shown in its
   folder instead.
 - **Searchable PDF** uses the text recognition built into Windows. Choose its language in
-  **Settings > Saving**. To add languages: Windows Settings > Time & language > Language & region > (language)
-  > Language options > Optical character recognition.
+  **Settings > Saving**.
+- **Adding OCR languages:** in **Settings > Saving**, click **Manage languages…**. Windows offers 35 languages,
+  among them English, French, German, Italian, Spanish, Portuguese and Romanian. Tick the ones you need and
+  click **Install**. Windows asks for administrator permission once and downloads them from Windows Update,
+  which takes a few minutes each. Untick an installed language to remove it. The languages belong to Windows,
+  not to the app, so they can't be built into it.
+  - If installing fails and the window says Windows is waiting for a restart, restart the PC and try again.
+    Windows won't add components while an earlier update is waiting to finish.
 
 ## App settings
 
@@ -237,7 +243,8 @@ the app writes changes to those settings back into it, so SaneTwain stays in syn
 | **No scanner found** | The server sees no scanner. Check it's on and its USB cable is connected; on the server, `scanimage -L` should list it. |
 | **The scanner is busy** | Another program is scanning. Wait, or close SaneTwain or other scan programs. |
 | **The file wasn't saved** | The message says why, e.g. a read-only folder or a missing folder with "create" turned off. Fix it, then press **Save again**; the pages are kept. |
-| **No text in a searchable PDF** | Install an OCR language in Windows (see [After the scan](#after-the-scan-saving-printing-e-mail)). Use 300 dpi and *True Gray* for best results. |
+| **No text in a searchable PDF** | Install the document's language with **Settings > Saving > Manage languages…** and choose it as the OCR language. Use 300 dpi and *True Gray* for best results. |
+| **Installing an OCR language fails (0x8024001e)** | Windows is waiting for a restart from an earlier update. Restart the PC, then try again. |
 | **Nothing was printed** | Choose an installed printer in **Settings > Printer**. |
 | **E-mail doesn't open** | Set a default mail program in Windows that supports Simple MAPI (Outlook classic, Thunderbird). |
 

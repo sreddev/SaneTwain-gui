@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+# .NET build output and packages (see also csharp/.gitignore)
+bin/
+obj/
+csharp/artifacts/
+# never commit signing keys
+*.pfx
+*.cer
+# local settings and editor files
+*.user
+.vs/
+.vscode/

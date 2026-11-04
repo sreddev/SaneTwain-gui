@@ -1,0 +1,808 @@
+<title>SaneTwain Scan Center</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a desktop app window (profiles | platen preview | settings) framed by a scenario strip above and output/log panels below */
+:root{
+  --bg:#e9edf3; --surface:#ffffff; --surface-2:#f3f5f9; --line:#d6dce6; --fg:#17202c; --muted:#5a6577;
+  --accent:#2f5bd3; --accent-soft:#e3eafc; --accent-fg:#ffffff; --lamp:#f2a33a; --ok:#1d8a5a; --err:#c4352d; --warn-soft:#fdf0dc;
+  --platen:#28303d; --paper:#fbfbf8;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1218; --surface:#161b24; --surface-2:#1c2230; --line:#2a3241; --fg:#e5e9f0; --muted:#97a2b4;
+  --accent:#7196ff; --accent-soft:#1f2b48; --accent-fg:#0c1322; --lamp:#f5b04f; --ok:#45b985; --err:#ef6a5f; --warn-soft:#3a2d17;
+  --platen:#0a0d12; --paper:#f1f1ec; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1218; --surface:#161b24; --surface-2:#1c2230; --line:#2a3241; --fg:#e5e9f0; --muted:#97a2b4;
+  --accent:#7196ff; --accent-soft:#1f2b48; --accent-fg:#0c1322; --lamp:#f5b04f; --ok:#45b985; --err:#ef6a5f; --warn-soft:#3a2d17;
+  --platen:#0a0d12; --paper:#f1f1ec; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 48px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:30px;line-height:1.15}
+h2{font-size:18px}
+.lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
+.mono{font-family:var(--f-mono);font-size:12px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* scenarios */
+.scen{display:flex;flex-direction:column;gap:10px}
+.scen-row{display:flex;flex-wrap:wrap;gap:8px}
+.scen-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:500;display:flex;gap:8px;align-items:center}
+.scen-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.scen-btn:disabled{opacity:.5;cursor:default}
+.scen-btn .k{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.scen-note{color:var(--muted);min-height:21px}
+
+/* app window */
+.app{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 50px -24px rgba(20,30,50,.35);overflow:hidden;position:relative}
+.titlebar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap}
+.titlebar .name{font-family:var(--f-display);font-weight:700;font-size:15px}
+.device{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:0;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.dot.off{background:var(--err)}
+.dot.busy{background:var(--lamp)}
+.body{display:grid;grid-template-columns:210px minmax(0,1fr) 310px;min-height:640px}
+.nav{border-right:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--surface)}
+.nav .eyebrow{padding:4px 8px 6px}
+.prof{display:flex;flex-direction:column;align-items:flex-start;text-align:left;border:1px solid transparent;background:none;border-radius:var(--r);padding:9px 10px;gap:1px;min-width:0}
+.prof b{font-weight:600}
+.prof span{font-family:var(--f-mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.prof:hover{background:var(--surface-2)}
+.prof[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.prof[aria-pressed="true"] b{color:var(--accent)}
+
+.stage{display:flex;flex-direction:column;background:var(--surface-2);min-width:0}
+.stage-top{display:flex;gap:8px;align-items:center;padding:12px 16px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 14px;font-weight:500}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600;padding:9px 20px}
+.btn:disabled{opacity:.5;cursor:default}
+.stage-top .hint{margin-left:auto;color:var(--muted);font-size:12.5px}
+.platen-wrap{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:4px 16px 16px;position:relative;min-height:0}
+.platen{position:relative;width:min(100%, 380px);aspect-ratio:840/1188;max-width:100%}
+canvas#view{width:100%;height:100%;display:block;border-radius:6px;background:var(--platen);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.overlay{position:absolute;inset:auto 10px 10px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 30px -12px rgba(0,0,0,.45)}
+.overlay h3{font-size:15px}
+.overlay p{margin:0;color:var(--muted)}
+.overlay .row{display:flex;gap:8px;flex-wrap:wrap}
+.overlay.err{border-color:var(--err)}
+.overlay.err h3{color:var(--err)}
+.btn.pulse{animation:pulse .5s ease 2}
+@keyframes pulse{50%{transform:scale(.96);background:var(--accent-soft)}}
+
+.tray{border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:10px;align-items:center;min-height:86px;overflow-x:auto;background:var(--surface)}
+.tray .eyebrow{flex:none;width:52px}
+.thumb{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.thumb canvas{width:44px;height:62px;border:1px solid var(--line);border-radius:3px;background:var(--paper)}
+.tray .empty{color:var(--muted);font-size:12.5px}
+
+/* settings */
+.settings{border-left:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label,.field .lab{font-size:12px;font-weight:600;color:var(--muted)}
+.field select,.field input[type=text]{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 9px;width:100%;min-width:0}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.folder{display:flex;gap:6px;align-items:stretch}
+.folder .path{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-family:var(--f-mono);font-size:12px;background:var(--surface-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.folder .btn{padding:6px 10px}
+.missing{font-size:12px;color:var(--lamp)}
+.namepreview{font-family:var(--f-mono);font-size:11.5px;color:var(--accent);word-break:break-all}
+.tokens{font-size:11.5px;color:var(--muted)}
+.tokens code{font-family:var(--f-mono);background:var(--surface-2);padding:0 4px;border-radius:3px;cursor:pointer;border:1px solid var(--line)}
+.range{display:flex;align-items:center;gap:8px}
+.range input{flex:1;accent-color:var(--accent);min-width:0}
+.range output{font-family:var(--f-mono);font-size:12px;width:34px;text-align:right}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.check input{accent-color:var(--accent);margin-top:3px}
+.sep{height:1px;background:var(--line);margin:2px 0}
+.platen-note{font-size:11.5px;color:var(--muted)}
+
+.status{display:flex;gap:14px;align-items:center;padding:7px 16px;border-top:1px solid var(--line);background:var(--surface-2);font-size:12.5px;flex-wrap:wrap}
+.status .msg{flex:1;min-width:180px}
+.progress{width:160px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .1s linear}
+.status .meta{color:var(--muted);font-family:var(--f-mono);font-size:11.5px}
+
+.toast{position:absolute;right:16px;bottom:44px;background:var(--fg);color:var(--bg);border-radius:8px;padding:10px 14px;max-width:min(440px, calc(100% - 32px));font-size:13px;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);transition:opacity .25s, transform .25s}
+.toast.hide{opacity:0;transform:translateY(8px);pointer-events:none}
+.toast .mono{color:inherit;word-break:break-all}
+
+/* below */
+.below{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+td.n{font-family:var(--f-mono);font-size:12px}
+td.f{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+tr.new td{animation:flash 1.6s ease}
+@keyframes flash{from{background:var(--accent-soft)}to{background:transparent}}
+.log{font-family:var(--f-mono);font-size:11.5px;line-height:1.6;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.log div{display:flex;gap:8px}
+.log .t{color:var(--muted);flex:none}
+.log .ok{color:var(--ok)} .log .err{color:var(--err)} .log .warn{color:var(--lamp)}
+.emptyrow{color:var(--muted);font-size:13px;padding:8px 0}
+
+.plan{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.plan .panel p{margin:0;color:var(--muted)}
+.plan h3{font-size:15px}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(10,14,20,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.dialog{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:min(520px,100%);max-height:90%;display:flex;flex-direction:column;overflow:hidden}
+.dialog header{padding:14px 16px;border-bottom:1px solid var(--line)}
+.tree{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:1px;max-height:300px}
+.tree button{text-align:left;border:none;background:none;padding:6px 8px;border-radius:6px;font-family:var(--f-mono);font-size:12px;display:flex;gap:8px;align-items:center}
+.tree button:hover{background:var(--surface-2)}
+.tree button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.tree .ico{width:14px;height:11px;border-radius:2px;background:var(--lamp);opacity:.8;flex:none}
+.dialog .foot{padding:12px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.dialog .row{display:flex;gap:8px;flex-wrap:wrap}
+.dialog input[type=text]{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 9px;font-family:var(--f-mono);font-size:12px}
+
+.tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:none;background:none;padding:10px 12px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tabpanel{padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.tabpanel .pair{grid-template-columns:2fr 1fr}
+.tabpanel .note{font-size:12px;color:var(--muted);margin:0}
+.tabpanel .test{font-size:12.5px;font-family:var(--f-mono)}
+.tabpanel .test.ok{color:var(--ok)} .tabpanel .test.err{color:var(--err)}
+.gear{display:flex;align-items:center;gap:6px;padding:6px 12px}
+
+@media (max-width:1060px){
+  .body{grid-template-columns:minmax(0,1fr) 300px}
+  .nav{grid-column:1 / -1;flex-direction:row;border-right:none;border-bottom:1px solid var(--line);overflow-x:auto}
+  .nav .eyebrow{display:none}
+  .prof{flex:none;max-width:200px}
+}
+@media (max-width:760px){
+  .body{grid-template-columns:minmax(0,1fr)}
+  .settings{border-left:none;border-top:1px solid var(--line)}
+  .below,.plan{grid-template-columns:minmax(0,1fr)}
+  .stage-top .hint{margin-left:0;width:100%}
+  h1{font-size:25px}
+}
+@media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Interactive simulation · nothing here touches your scanner</div>
+    <h1>SaneTwain Scan Center</h1>
+    <p class="lede">A redesign of the SaneTwain front end for your Brother DCP-150C on <span class="mono">saned</span> at 192.168.254.1. It borrows the four one-click scan buttons from ControlCenter3, and each one saves straight to a folder you choose as soon as the scan finishes. Run a scenario below, or change the settings and press Scan yourself.</p>
+  </header>
+
+  <section class="scen" aria-label="Scenarios">
+    <div class="scen-row" id="scenRow"></div>
+    <div class="scen-note" id="scenNote">Pick a scenario to watch it play out, step by step.</div>
+  </section>
+
+  <div class="app" id="app">
+    <div class="titlebar">
+      <span class="name">SaneTwain Scan Center</span>
+      <span class="eyebrow">v2 concept</span>
+      <div class="device"><span class="dot" id="devDot"></span><span id="devText">Brother DCP-150C · brother2:bus1;dev1 · 192.168.254.1:6566</span></div>
+      <button class="btn gear" id="appSetBtn" aria-haspopup="dialog"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>App settings</button>
+    </div>
+    <div class="body">
+      <nav class="nav" aria-label="Scan buttons">
+        <div class="eyebrow">Scan buttons</div>
+        <div id="profList" style="display:contents"></div>
+      </nav>
+
+      <section class="stage">
+        <div class="stage-top">
+          <button class="btn primary" id="scanBtn">Scan to File</button>
+          <button class="btn" id="prevBtn" title="Quick low-resolution pass, nothing is saved">Preview (50 dpi)</button>
+          <span class="hint" id="hint">Place the document face down, top-left corner on the arrow.</span>
+        </div>
+        <div class="platen-wrap">
+          <div class="platen">
+            <canvas id="view" width="840" height="1188" aria-label="Scanner glass preview"></canvas>
+            <div class="overlay" id="moreBox" hidden>
+              <h3 id="moreTitle">Page 1 scanned</h3>
+              <p>Place the next page on the glass, then scan it. The DCP-150C has no document feeder, so pages go in one at a time.</p>
+              <div class="row">
+                <button class="btn primary" id="moreYes">Scan next page</button>
+                <button class="btn" id="moreNo">Finish and save</button>
+              </div>
+            </div>
+            <div class="overlay err" id="errBox" hidden>
+              <h3 id="errTitle">Scanner not reachable</h3>
+              <p id="errBody"></p>
+              <div class="row"><button class="btn primary" id="errAct">Retry</button><button class="btn" id="errClose">Dismiss</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="tray" aria-label="Pages in this scan">
+          <span class="eyebrow">Pages</span>
+          <div id="tray" style="display:flex;gap:10px"><span class="empty">Scanned pages collect here until the file is saved.</span></div>
+        </div>
+      </section>
+
+      <aside class="settings" aria-label="Settings for this button">
+        <div class="eyebrow" id="setTitle">Scan to File settings</div>
+        <div class="field">
+          <span class="lab">Save to folder</span>
+          <div class="folder"><div class="path" id="folderPath"></div><button class="btn" id="folderBtn">Change…</button></div>
+          <span class="missing" id="folderMissing" hidden>This folder doesn't exist yet.</span>
+          <label class="check"><input type="checkbox" id="s-create"> Create the folder if it's missing</label>
+        </div>
+        <div class="field">
+          <label for="s-pattern">File name</label>
+          <input type="text" id="s-pattern" spellcheck="false">
+          <div class="tokens">Insert: <code data-t="{profile}">{profile}</code> <code data-t="{date}">{date}</code> <code data-t="{time}">{time}</code> <code data-t="{n}">{n}</code></div>
+          <div class="namepreview" id="namePreview"></div>
+        </div>
+        <div class="field">
+          <label for="s-type">File type</label>
+          <select id="s-type"></select>
+        </div>
+        <div class="sep"></div>
+        <div class="pair">
+          <div class="field"><label for="s-res">Resolution</label><select id="s-res"></select></div>
+          <div class="field"><label for="s-size">Document size</label><select id="s-size"></select></div>
+        </div>
+        <div class="field"><label for="s-mode">Scan type</label><select id="s-mode"></select></div>
+        <div class="field"><label for="s-bright">Brightness</label><div class="range"><input type="range" id="s-bright" min="-50" max="50" step="5"><output id="o-bright"></output></div></div>
+        <div class="field"><label for="s-contrast">Contrast</label><div class="range"><input type="range" id="s-contrast" min="-50" max="50" step="5"><output id="o-contrast"></output></div></div>
+        <div class="sep"></div>
+        <label class="check"><input type="checkbox" id="s-multi"> Ask for another page after each scan</label>
+        <div class="field">
+          <label for="s-after">When the file is saved</label>
+          <select id="s-after">
+            <option value="none">Do nothing else</option>
+            <option value="folder">Open the folder</option>
+            <option value="open">Open the file</option>
+            <option value="mail">Attach it to a new e-mail</option>
+          </select>
+        </div>
+        <p class="platen-note">Glass area: 215.9 × 297 mm. Sizes larger than that, like Legal, can't be scanned on this model.</p>
+      </aside>
+    </div>
+    <div class="status">
+      <span class="dot" id="stDot"></span>
+      <span class="msg" id="stMsg">Ready</span>
+      <div class="progress" aria-hidden="true"><i id="stBar"></i></div>
+      <span class="meta" id="stMeta"></span>
+    </div>
+    <div class="toast hide" id="toast" role="status"></div>
+  </div>
+
+  <div class="below">
+    <section class="panel">
+      <div class="panel-head"><h2>Saved files</h2><span class="eyebrow" id="savedCount">0 files</span></div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Name</th><th>Folder</th><th>Pages</th><th>Size</th><th>Saved</th></tr></thead>
+          <tbody id="savedBody"></tbody>
+        </table>
+      </div>
+      <div class="emptyrow" id="savedEmpty">Nothing saved yet. Files appear here the moment a scan finishes.</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Activity</h2><span class="eyebrow">SANE protocol log</span></div>
+      <div class="log" id="log" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <section class="plan" aria-label="How the real app would work">
+    <div class="panel"><h3>Talks to saned directly</h3><p>SaneTwain.ds 1.37 is a closed 2013 binary, so it can't be edited. The new app speaks the same SANE network protocol on port 6566 and reads your existing <span class="mono">sanetwain.ini</span> for host, user and device, so nothing on the server changes.</p></div>
+    <div class="panel"><h3>ControlCenter3 buttons</h3><p>File, Image, OCR and E-mail each keep their own folder, file name, type, resolution and scan type. That matches how ControlCenter3 configures its scan buttons, but it works over the network through saned.</p></div>
+    <div class="panel"><h3>Saves when the scan ends</h3><p>No Save dialog. The file is written the moment you finish. Missing folders are created, and taken names get " (2)" added. Multi-page PDF, TIFF and searchable OCR PDF are all supported.</p></div>
+  </section>
+</div>
+
+<div class="modal" id="appModal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="aTitle" style="width:min(580px,100%)">
+    <header><h2 id="aTitle">App settings</h2><p class="note" style="margin:4px 0 0;color:var(--muted);font-size:12.5px">These apply to every scan button. Stored in <span class="mono">C:\Users\TSL\sanetwain.ini</span>, so SaneTwain keeps working too.</p></header>
+    <div class="tabs" role="tablist" id="aTabs">
+      <button role="tab" data-tab="conn" aria-selected="true">Connection</button>
+      <button role="tab" data-tab="prev" aria-selected="false">Preview</button>
+      <button role="tab" data-tab="save" aria-selected="false">Saving</button>
+      <button role="tab" data-tab="gen" aria-selected="false">General</button>
+      <button role="tab" data-tab="prn" aria-selected="false">Printer</button>
+    </div>
+    <div class="tabpanel" data-panel="conn">
+      <div class="pair">
+        <div class="field"><label for="a-host">saned server</label><input type="text" id="a-host" spellcheck="false"></div>
+        <div class="field"><label for="a-port">Port</label><input type="text" id="a-port" inputmode="numeric"></div>
+      </div>
+      <div class="field"><label for="a-user">User name</label><input type="text" id="a-user" spellcheck="false"></div>
+      <div class="field"><label for="a-dev">Scanner</label>
+        <div class="folder"><select id="a-dev" style="flex:1;min-width:0"></select><button class="btn" id="a-find">Find scanners</button></div></div>
+      <label class="check"><input type="checkbox" id="a-getdev"> Look for scanners every time the app starts</label>
+      <div class="row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="a-test">Test connection</button><span class="test" id="a-testres"></span></div>
+    </div>
+    <div class="tabpanel" data-panel="prev" hidden>
+      <div class="field"><label for="a-pres">Preview resolution</label><select id="a-pres"><option value="25">25 dpi, fastest</option><option value="50">50 dpi</option><option value="75">75 dpi</option><option value="100">100 dpi, sharpest</option></select></div>
+      <label class="check"><input type="checkbox" id="a-pmin"> Use the scanner's lowest resolution if it's lower</label>
+      <label class="check"><input type="checkbox" id="a-pauto"> Run a preview as soon as the app opens</label>
+      <label class="check"><input type="checkbox" id="a-pfit"> Detect the document edges and set the scan area</label>
+    </div>
+    <div class="tabpanel" data-panel="save" hidden>
+      <div class="field"><label for="a-root">Default folder for new scan buttons</label><input type="text" id="a-root" spellcheck="false"></div>
+      <div class="field"><label for="a-jq">JPEG quality</label><div class="range"><input type="range" id="a-jq" min="50" max="100" step="5"><output id="a-jqo"></output></div></div>
+      <div class="field"><label for="a-ocrlang">OCR language</label><select id="a-ocrlang"><option value="eng">English</option><option value="ita">Italian</option><option value="deu">German</option><option value="fra">French</option><option value="spa">Spanish</option><option value="eng+ita">English + Italian</option></select></div>
+      <label class="check"><input type="checkbox" id="a-sound"> Play a sound when a file is saved</label>
+      <label class="check"><input type="checkbox" id="a-notify"> Show a Windows notification when a file is saved</label>
+    </div>
+    <div class="tabpanel" data-panel="gen" hidden>
+      <div class="field"><label for="a-lang">Language</label><select id="a-lang"><option value="en">English</option><option value="it">Italiano</option><option value="de">Deutsch</option><option value="fr">Français</option><option value="es">Español</option></select></div>
+      <label class="check"><input type="checkbox" id="a-top"> Keep the window on top of other windows</label>
+      <label class="check"><input type="checkbox" id="a-esc"> Ignore the Esc key (stops accidental closing)</label>
+      <label class="check"><input type="checkbox" id="a-hide"> Hide options the scanner doesn't support</label>
+      <label class="check"><input type="checkbox" id="a-tray"> Start with Windows and wait in the notification area</label>
+      <div class="field"><label for="a-theme">Theme</label><select id="a-theme"><option value="system">Match Windows</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+    </div>
+    <div class="tabpanel" data-panel="prn" hidden>
+      <div class="field"><label for="a-prn">Printer for "Scan to Print" and copies</label><select id="a-prn"><option>Brother DCP-150C Printer_LAN</option><option>Microsoft Print to PDF</option></select></div>
+      <label class="check"><input type="checkbox" id="a-psetup"> Show printer options before printing</label>
+      <label class="check"><input type="checkbox" id="a-pdelay"> Wait until all pages are scanned before printing</label>
+    </div>
+    <div class="foot"><div class="row" style="justify-content:flex-end"><button class="btn" id="aCancel">Cancel</button><button class="btn primary" id="aOk">Save settings</button></div></div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <header><h2 id="mTitle">Choose a destination folder</h2></header>
+    <div class="tree" id="tree"></div>
+    <div class="foot">
+      <div class="row"><input type="text" id="mPath" spellcheck="false" aria-label="Folder path"></div>
+      <div class="row"><input type="text" id="mNew" placeholder="New folder name" aria-label="New folder name"><button class="btn" id="mCreate">New folder</button></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mOk">Use this folder</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SPEED = RM ? 0.35 : 1;
+const sleep = ms => new Promise(r => setTimeout(r, ms * SPEED));
+
+const APP = {host:'192.168.254.1', port:6566, user:'sauron', dev:'brother2:bus1;dev1', getdev:true, pres:50, pmin:true, pauto:false, pfit:false,
+  root:'D:\\Scans', jq:100, ocrlang:'eng', sound:false, notify:true, lang:'en', top:false, esc:false, hide:false, tray:false, theme:'system',
+  prn:'Brother DCP-150C Printer_LAN', psetup:true, pdelay:false};
+let HOST = APP.host, PORT = APP.port, DEV = APP.dev;
+const W = 840, H = 1188, PLATEN = {w:215.9, h:297};
+
+const FOLDERS = new Set(['C:\\Users\\TSL\\Documents','C:\\Users\\TSL\\Desktop','D:\\Scans','D:\\Scans\\Documents','D:\\Scans\\Images','D:\\Scans\\Mail','D:\\Storage_HDD\\02_Exchange']);
+const TYPES = {
+  'pdf':  {label:'PDF, all pages in one file', ext:'pdf', multi:true},
+  'pdfocr':{label:'Searchable PDF (OCR)', ext:'pdf', multi:true, ocr:true},
+  'tif':  {label:'TIFF, multi-page', ext:'tif', multi:true},
+  'jpg':  {label:'JPEG, one file per page', ext:'jpg', multi:false},
+  'png':  {label:'PNG, one file per page', ext:'png', multi:false},
+};
+const MODES = ['Black & White','Gray[Error Diffusion]','True Gray','24bit Color'];
+const SIZES = {'A4':{w:210,h:297},'Letter':{w:215.9,h:279.4},'A5':{w:148,h:210},'Business card':{w:90,h:55},'Full glass':{w:215.9,h:297},'Legal':{w:215.9,h:355.6,off:true}};
+const RES = [100,150,200,300,600,1200];
+
+const DEFAULTS = {
+  file:{label:'Scan to File', tag:'File', type:'pdf', folder:'D:\\Scans\\Documents', pattern:'{profile}_{date}_{time}', res:300, mode:'True Gray', size:'A4', bright:0, contrast:0, multi:true, after:'folder', create:true, doc:'letter'},
+  image:{label:'Scan to Image', tag:'Image', type:'jpg', folder:'D:\\Scans\\Images', pattern:'Photo_{date}_{n}', res:600, mode:'24bit Color', size:'A5', bright:0, contrast:5, multi:false, after:'open', create:true, doc:'photo'},
+  ocr:{label:'Scan to OCR', tag:'OCR', type:'pdfocr', folder:'D:\\Scans\\OCR', pattern:'OCR_{date}_{n}', res:300, mode:'True Gray', size:'A4', bright:5, contrast:10, multi:true, after:'open', create:true, doc:'invoice'},
+  email:{label:'Scan to E-mail', tag:'Mail', type:'pdf', folder:'D:\\Scans\\Mail', pattern:'Mail_{date}_{time}', res:150, mode:'24bit Color', size:'A4', bright:0, contrast:0, multi:true, after:'mail', create:true, doc:'letter'},
+};
+let P = JSON.parse(JSON.stringify(DEFAULTS));
+let active = 'file', busy = false, connected = true;
+let pages = [], saved = [], folderCounters = {};
+let autoPilot = null; // {pages:n}
+
+/* ---------- helpers ---------- */
+const now = () => new Date(2026, 10, 4, 14, 32, 5 + Math.floor(performance.now()/1000));
+const pad = (n, l=2) => String(n).padStart(l, '0');
+const dateStr = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const timeStr = d => `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+const clock = d => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+const fmtMB = b => b >= 1048576 ? (b/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b/1024)) + ' KB';
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+function log(msg, kind=''){
+  const el = document.createElement('div');
+  el.innerHTML = `<span class="t">${clock(now())}</span><span class="${kind}"></span>`;
+  el.lastChild.textContent = msg;
+  $('log').appendChild(el); $('log').scrollTop = 1e9;
+}
+function status(msg, state='ok', prog=null, meta=null){
+  $('stMsg').textContent = msg;
+  $('stDot').className = 'dot' + (state==='busy'?' busy':state==='err'?' off':'');
+  $('devDot').className = 'dot' + (!connected?' off':state==='busy'?' busy':'');
+  if (prog !== null) $('stBar').style.width = (prog*100).toFixed(1) + '%';
+  if (meta !== null) $('stMeta').textContent = meta;
+}
+let toastT;
+function toast(html){ const t=$('toast'); t.innerHTML=html; t.classList.remove('hide'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add('hide'), 4200); }
+
+const prof = () => P[active];
+function rawBytes(p){ const s=SIZES[p.size]; const px=(s.w/25.4*p.res)*(s.h/25.4*p.res); const bpp = p.mode==='24bit Color'?3:p.mode==='Black & White'?1/8:1; return px*bpp; }
+function fileBytes(p, n){
+  const s=SIZES[p.size]; const px=(s.w/25.4*p.res)*(s.h/25.4*p.res);
+  const k = {color:{pdf:px*3/11, tif:px*3/1.7, jpg:px*3/11, png:px*3/2.1}, gray:{pdf:px/7, tif:px/1.9, jpg:px/7, png:px/2.6}, bw:{pdf:px/70, tif:px/30, jpg:px/9, png:px/40}};
+  const m = p.mode==='24bit Color'?'color':p.mode==='Black & White'?'bw':'gray';
+  const ext = TYPES[p.type].ext; let b = k[m][ext] * n * (ext==='jpg' ? 0.35 + 0.65*Math.pow((APP.jq-50)/50, 2) : 1); if (TYPES[p.type].ocr) b *= 1.04; return b;
+}
+function buildName(p, n){
+  const d = now();
+  return p.pattern.replace(/\{profile\}/g, p.tag).replace(/\{date\}/g, dateStr(d)).replace(/\{time\}/g, timeStr(d)).replace(/\{n\}/g, pad(n,3)).replace(/[\\/:*?"<>|]/g,'-') + '.' + TYPES[p.type].ext;
+}
+
+/* ---------- document drawing ---------- */
+function drawDoc(ctx, w, h, kind, idx){
+  const r = rng(idx*977 + kind.length*31 + 7); const rects = [];
+  ctx.fillStyle = '#fbfbf8'; ctx.fillRect(0,0,w,h);
+  const u = w/210; // px per mm
+  if (kind === 'photo'){
+    const m = 8*u, iw = w-2*m, ih = h-2*m;
+    const g = ctx.createLinearGradient(0,m,0,m+ih*.62); g.addColorStop(0,'#3d6fb6'); g.addColorStop(1,'#f0b97a');
+    ctx.fillStyle = g; ctx.fillRect(m,m,iw,ih);
+    ctx.fillStyle = '#ffe2a3'; ctx.beginPath(); ctx.arc(m+iw*.68, m+ih*.45, iw*.09, 0, 7); ctx.fill();
+    const ridge = (y0, amp, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(m, m+ih); for(let x=0;x<=20;x++){ ctx.lineTo(m+iw*x/20, m+ih*y0 - r()*ih*amp); } ctx.lineTo(m+iw, m+ih); ctx.fill(); };
+    ridge(.62,.18,'#5d5a7a'); ridge(.72,.12,'#3e4a5e'); ridge(.84,.08,'#2a3a35');
+    ctx.fillStyle='#1f2d27'; ctx.fillRect(m, m+ih*.9, iw, ih*.1);
+    return rects;
+  }
+  const m = 20*u; let y = m;
+  ctx.fillStyle = '#2f5bd3'; ctx.fillRect(m, y, 14*u, 14*u);
+  ctx.fillStyle = '#1b2230'; ctx.fillRect(m+18*u, y+2*u, 55*u, 4.5*u);
+  ctx.fillStyle = '#8a93a3'; ctx.fillRect(m+18*u, y+9*u, 40*u, 2.6*u);
+  ctx.fillRect(w-m-45*u, y+2*u, 45*u, 2.6*u); ctx.fillRect(w-m-35*u, y+7*u, 35*u, 2.6*u);
+  y += 30*u;
+  const line = (x, yy, lw, lh=2.8*u, col='#4a5263') => { ctx.fillStyle = col; ctx.fillRect(x, yy, lw, lh); rects.push([x,yy,lw,lh]); };
+  if (kind === 'invoice'){
+    ctx.fillStyle='#1b2230'; ctx.font = `700 ${9*u}px Segoe UI, sans-serif`; ctx.fillText(idx===0?'INVOICE':'INVOICE (cont.)', m, y+8*u); y += 18*u;
+    for (let i=0;i<3;i++){ line(m, y, (40+r()*30)*u); y += 6*u; }
+    y += 8*u; const cols=[m, m+95*u, m+120*u, m+145*u]; const tw = w-2*m;
+    ctx.fillStyle='#dfe4ec'; ctx.fillRect(m, y, tw, 8*u); y+=12*u;
+    for (let i=0;i<9;i++){ line(cols[0]+2*u, y, (40+r()*40)*u); line(cols[1], y, 10*u); line(cols[2], y, 14*u); line(cols[3], y, 18*u); ctx.fillStyle='#e6e9ef'; ctx.fillRect(m, y+5*u, tw, .4*u); y += 9*u; }
+    y += 6*u; line(cols[2], y, 40*u, 4*u, '#1b2230'); y += 20*u;
+    for (let i=0;i<4;i++){ line(m, y, (tw*(.6+r()*.35))); y+=6*u; }
+  } else {
+    for (let i=0;i<4;i++){ line(m, y, (35+r()*25)*u); y += 6*u; }
+    y += 10*u; line(m, y, 70*u, 4*u, '#1b2230'); y += 12*u;
+    const tw = w-2*m;
+    for (let p=0;p<(idx===0?4:5);p++){ const n = 4+Math.floor(r()*4); for(let i=0;i<n;i++){ line(m, y, i===n-1? tw*(.3+r()*.4) : tw*(.92+r()*.08)); y += 6*u; } y += 6*u; if (y > h-50*u) break; }
+    if (y < h-45*u){ ctx.strokeStyle='#22325a'; ctx.lineWidth=.8*u; ctx.beginPath(); ctx.moveTo(m, y+14*u); for(let i=0;i<8;i++) ctx.quadraticCurveTo(m+(i*6+3)*u, y+(i%2?6:20)*u, m+(i*6+6)*u, y+14*u); ctx.stroke(); line(m, y+20*u, 40*u); }
+  }
+  ctx.fillStyle='#9aa2b0'; ctx.fillRect(w/2-6*u, h-12*u, 12*u, 2.4*u);
+  return rects;
+}
+function processImg(cv, p){
+  const ctx = cv.getContext('2d'); const img = ctx.getImageData(0,0,cv.width,cv.height); const d = img.data;
+  const b = p.bright*2.55, c = p.contrast*2.55, f = (259*(c+255))/(255*(259-c));
+  const lum = new Float32Array(cv.width*cv.height);
+  for (let i=0,j=0;i<d.length;i+=4,j++){
+    let R=f*(d[i]-128)+128+b, G=f*(d[i+1]-128)+128+b, B=f*(d[i+2]-128)+128+b;
+    if (p.mode==='24bit Color'){ d[i]=R; d[i+1]=G; d[i+2]=B; } else lum[j] = .299*R+.587*G+.114*B;
+  }
+  if (p.mode !== '24bit Color'){
+    const w=cv.width, hh=cv.height;
+    for (let y=0;y<hh;y++) for (let x=0;x<w;x++){
+      const j=y*w+x; let v=lum[j];
+      if (p.mode==='Black & White') v = v<150?0:255;
+      else if (p.mode==='Gray[Error Diffusion]'){ const o = v<128?0:255; const e=v-o; v=o; if(x+1<w) lum[j+1]+=e*7/16; if(y+1<hh){ if(x>0) lum[j+w-1]+=e*3/16; lum[j+w]+=e*5/16; if(x+1<w) lum[j+w+1]+=e/16; } }
+      const i=j*4; d[i]=d[i+1]=d[i+2]=v;
+    }
+  }
+  ctx.putImageData(img,0,0); return cv;
+}
+
+/* ---------- platen view ---------- */
+const view = $('view'), vctx = view.getContext('2d');
+function platenBase(){
+  const css = getComputedStyle(document.documentElement);
+  vctx.fillStyle = css.getPropertyValue('--platen').trim() || '#28303d'; vctx.fillRect(0,0,W,H);
+  vctx.strokeStyle = 'rgba(255,255,255,.08)'; vctx.lineWidth = 1;
+  for (let x=0;x<W;x+=W/8){ vctx.beginPath(); vctx.moveTo(x,0); vctx.lineTo(x,H); vctx.stroke(); }
+  for (let y=0;y<H;y+=H/11){ vctx.beginPath(); vctx.moveTo(0,y); vctx.lineTo(W,y); vctx.stroke(); }
+  vctx.fillStyle = 'rgba(255,255,255,.55)'; vctx.beginPath(); vctx.moveTo(10,10); vctx.lineTo(54,10); vctx.lineTo(10,54); vctx.fill();
+}
+let lastShown = null;
+function showIdle(){ platenBase(); if (lastShown) vctx.drawImage(lastShown.cv, 0, 0, lastShown.w, lastShown.h); }
+function docArea(p){ const s=SIZES[p.size]; return {w:Math.round(s.w/PLATEN.w*W), h:Math.round(s.h/PLATEN.h*H)}; }
+
+function animateScan(cv, area, dur, onProg, lowres){
+  return new Promise(res => {
+    const t0 = performance.now(); const D = dur*SPEED;
+    vctx.imageSmoothingEnabled = !lowres;
+    function frame(t){
+      const k = Math.min(1, (t-t0)/D); const sy = area.h*k;
+      platenBase();
+      if (sy>0) vctx.drawImage(cv, 0, 0, cv.width, cv.height*k, 0, 0, area.w, sy);
+      if (k<1){
+        const g = vctx.createLinearGradient(0, sy-26, 0, sy+26);
+        g.addColorStop(0,'rgba(242,163,58,0)'); g.addColorStop(.5,'rgba(255,210,140,.95)'); g.addColorStop(1,'rgba(242,163,58,0)');
+        vctx.fillStyle = g; vctx.fillRect(0, sy-26, W, 52);
+        vctx.fillStyle='rgba(255,240,215,1)'; vctx.fillRect(0, sy-1.5, W, 3);
+      }
+      onProg(k);
+      if (k<1) requestAnimationFrame(frame); else { vctx.imageSmoothingEnabled = true; res(); }
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ---------- UI rendering ---------- */
+function renderProfiles(){
+  $('profList').innerHTML = '';
+  for (const k of Object.keys(P)){
+    const b = document.createElement('button'); b.className='prof'; b.setAttribute('aria-pressed', k===active);
+    b.innerHTML = `<b></b><span></span>`; b.firstChild.textContent = P[k].label; b.lastChild.textContent = P[k].folder;
+    b.onclick = () => { if (busy) return; active = k; renderAll(); };
+    $('profList').appendChild(b);
+  }
+}
+function fillSelect(sel, items, val){ sel.innerHTML = ''; for (const [v,l,dis] of items){ const o=document.createElement('option'); o.value=v; o.textContent=l; if(dis) o.disabled=true; sel.appendChild(o);} sel.value = val; }
+function renderSettings(){
+  const p = prof();
+  $('setTitle').textContent = p.label + ' settings';
+  $('devText').textContent = `Brother DCP-150C · ${DEV} · ${HOST}:${PORT}`;
+  $('scanBtn').textContent = p.label;
+  $('folderPath').textContent = p.folder; $('folderPath').title = p.folder;
+  $('folderMissing').hidden = FOLDERS.has(p.folder);
+  $('s-create').checked = p.create;
+  if (document.activeElement !== $('s-pattern')) $('s-pattern').value = p.pattern;
+  fillSelect($('s-type'), Object.entries(TYPES).map(([k,v])=>[k,v.label]), p.type);
+  fillSelect($('s-res'), RES.map(r=>[r, r+' × '+r+' dpi']), p.res);
+  fillSelect($('s-size'), Object.entries(SIZES).map(([k,v])=>[k, v.off? k+' (too long for the glass)' : `${k}  ${v.w} × ${v.h} mm`, v.off]), p.size);
+  fillSelect($('s-mode'), MODES.map(m=>[m,m]), p.mode);
+  $('s-bright').value = p.bright; $('o-bright').textContent = (p.bright>0?'+':'')+p.bright;
+  $('s-contrast').value = p.contrast; $('o-contrast').textContent = (p.contrast>0?'+':'')+p.contrast;
+  $('s-multi').checked = p.multi; $('s-after').value = p.after;
+  const n = (folderCounters[p.folder]||0)+1;
+  $('namePreview').textContent = p.folder + '\\' + buildName(p, n);
+  status(busy ? $('stMsg').textContent : (connected ? 'Ready' : 'Scanner offline'), busy?'busy':connected?'ok':'err', null,
+    `${p.res} dpi · ${p.mode} · ${p.size} · ${fmtMB(rawBytes(p))} raw per page`);
+}
+function renderTray(){
+  const t = $('tray'); t.innerHTML = '';
+  if (!pages.length){ t.innerHTML = '<span class="empty">Scanned pages collect here until the file is saved.</span>'; return; }
+  pages.forEach((pg,i)=>{ const d=document.createElement('div'); d.className='thumb'; const c=document.createElement('canvas'); c.width=88; c.height=124; { const th=Math.min(124, 88*pg.h/pg.w); const tw=th===124? 124*pg.w/pg.h : 88; c.getContext('2d').drawImage(pg.cv,0,0,tw,th); } d.appendChild(c); d.appendChild(document.createTextNode('p'+(i+1))); t.appendChild(d); });
+}
+function renderSaved(){
+  const tb = $('savedBody'); tb.innerHTML='';
+  saved.slice().reverse().forEach((s,i)=>{ const tr=document.createElement('tr'); if(i===0 && s.fresh) tr.className='new';
+    for (const [v,c] of [[s.name,'n'],[s.folder,'f'],[s.pages,''],[fmtMB(s.size),''],[s.time,'']]){ const td=document.createElement('td'); if(c) td.className=c; td.textContent=v; tr.appendChild(td);} tb.appendChild(tr); s.fresh=false; });
+  $('savedEmpty').hidden = saved.length>0; $('savedCount').textContent = saved.length + (saved.length===1?' file':' files');
+}
+function setBusy(v){ busy=v; for (const id of ['scanBtn','prevBtn','folderBtn','appSetBtn']) $(id).disabled=v; document.querySelectorAll('.scen-btn').forEach(b=>b.disabled=v); document.querySelectorAll('.settings select, .settings input').forEach(e=>e.disabled=v); }
+function renderAll(){ renderProfiles(); renderSettings(); }
+
+/* ---------- settings events ---------- */
+const bind = (id, key, conv=v=>v, ev='change') => $(id).addEventListener(ev, e => { prof()[key] = conv(e.target.type==='checkbox'?e.target.checked:e.target.value); renderAll(); });
+bind('s-type','type'); bind('s-res','res',Number); bind('s-size','size'); bind('s-mode','mode');
+bind('s-bright','bright',Number,'input'); bind('s-contrast','contrast',Number,'input');
+bind('s-multi','multi'); bind('s-after','after'); bind('s-create','create'); bind('s-pattern','pattern',v=>v||'Scan_{n}','input');
+document.querySelectorAll('.tokens code').forEach(c => c.onclick = () => { if (busy) return; const inp=$('s-pattern'); const t=c.dataset.t; const s=inp.selectionStart??inp.value.length; inp.value = inp.value.slice(0,s)+t+inp.value.slice(inp.selectionEnd??s); prof().pattern=inp.value; renderAll(); });
+
+/* ---------- folder dialog ---------- */
+let mSel = '';
+function openFolders(){
+  mSel = prof().folder; $('mPath').value = mSel; $('mNew').value=''; renderTree(); $('modal').hidden=false; $('mPath').focus();
+}
+function renderTree(){
+  const t=$('tree'); t.innerHTML='';
+  [...FOLDERS].sort().forEach(f=>{ const b=document.createElement('button'); const depth=f.split('\\').length-2; b.style.paddingLeft=(8+depth*16)+'px';
+    b.innerHTML='<span class="ico"></span><span></span>'; b.lastChild.textContent = depth<0? f : f.split('\\').pop() + (depth===0? '   ' + f.split('\\')[0] : '');
+    b.lastChild.textContent = f; b.setAttribute('aria-selected', f===mSel); b.onclick=()=>{ mSel=f; $('mPath').value=f; renderTree(); }; t.appendChild(b); });
+}
+$('folderBtn').onclick = openFolders;
+$('mCancel').onclick = () => $('modal').hidden = true;
+$('mPath').oninput = e => { mSel = e.target.value; renderTree(); };
+$('mCreate').onclick = () => { const n=$('mNew').value.trim().replace(/[\\/:*?"<>|]/g,''); if(!n) return; const base=(mSel||'D:\\Scans').replace(/\\+$/,''); const f=base+'\\'+n; FOLDERS.add(f); mSel=f; $('mPath').value=f; $('mNew').value=''; log(`Created folder ${f}`,'ok'); renderTree(); };
+$('mOk').onclick = () => { const v=$('mPath').value.trim().replace(/\\+$/,''); if(v){ prof().folder=v; log(`${prof().label}: destination set to ${v}`); } $('modal').hidden=true; renderAll(); };
+$('modal').addEventListener('click', e => { if (e.target.id==='modal') $('modal').hidden=true; });
+document.addEventListener('keydown', e => { if (e.key==='Escape'){ if (!$('modal').hidden) $('modal').hidden=true; if (!$('appModal').hidden) $('appModal').hidden=true; } });
+
+/* ---------- app settings ---------- */
+const AFIELDS = ['host','port','user','dev','getdev','pres','pmin','pauto','pfit','root','jq','ocrlang','sound','notify','lang','top','esc','hide','tray','theme','prn','psetup','pdelay'];
+let devList = ['brother2:bus1;dev1'];
+function selectTab(t){ document.querySelectorAll('#aTabs button').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===t)); document.querySelectorAll('#appModal .tabpanel').forEach(p=>p.hidden = p.dataset.panel!==t); }
+document.querySelectorAll('#aTabs button').forEach(b => b.onclick = () => selectTab(b.dataset.tab));
+function fillDevs(val){ fillSelect($('a-dev'), devList.map(d=>[d, d==='brother2:bus1;dev1' ? d+'  (Brother DCP-150C)' : d]), val); }
+function openApp(){
+  fillDevs(APP.dev);
+  for (const k of AFIELDS){ const el=$('a-'+k); if(!el || k==='dev') continue; if (el.type==='checkbox') el.checked=APP[k]; else el.value=APP[k]; }
+  $('a-jqo').textContent = APP.jq; $('a-testres').textContent=''; $('a-testres').className='test';
+  selectTab('conn'); $('appModal').hidden=false; $('a-host').focus();
+}
+$('a-jq').oninput = e => $('a-jqo').textContent = e.target.value;
+$('a-find').onclick = async () => { $('a-find').disabled=true; $('a-testres').className='test'; $('a-testres').textContent='Asking saned for scanners…'; await sleep(900);
+  if (!connected){ $('a-testres').className='test err'; $('a-testres').textContent='No answer from '+$('a-host').value; }
+  else { devList=['brother2:bus1;dev1']; fillDevs($('a-dev').value); $('a-testres').className='test ok'; $('a-testres').textContent='Found 1 scanner: Brother DCP-150C'; log('SANE_NET_GET_DEVICES → 1 device'); }
+  $('a-find').disabled=false; };
+$('a-test').onclick = async () => { $('a-test').disabled=true; $('a-testres').className='test'; $('a-testres').textContent=`Connecting to ${$('a-host').value}:${$('a-port').value}…`; await sleep(800);
+  if (!connected){ $('a-testres').className='test err'; $('a-testres').textContent='No answer after 5 s. Is saned running?'; }
+  else { $('a-testres').className='test ok'; $('a-testres').textContent='Connected. saned 1.0.32, 1 scanner'; }
+  $('a-test').disabled=false; };
+$('aCancel').onclick = () => $('appModal').hidden = true;
+$('appModal').addEventListener('click', e => { if (e.target.id==='appModal') $('appModal').hidden=true; });
+$('aOk').onclick = () => {
+  for (const k of AFIELDS){ const el=$('a-'+k); if(!el) continue; let v = el.type==='checkbox' ? el.checked : el.value; if (typeof APP[k]==='number') v = Number(v)||APP[k]; APP[k]=v; }
+  HOST=APP.host.trim()||'192.168.254.1'; PORT=APP.port; DEV=APP.dev;
+  if (APP.theme==='system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', APP.theme);
+  $('prevBtn').textContent = `Preview (${APP.pres} dpi)`;
+  $('appModal').hidden=true; log('Saved app settings to C:\\Users\\TSL\\sanetwain.ini', 'ok'); toast('<b>Settings saved</b>'); renderAll(); if (!busy) showIdle();
+};
+$('appSetBtn').onclick = () => { if (!busy) openApp(); };
+
+/* ---------- prompts ---------- */
+function askMore(){
+  return new Promise(res => {
+    $('moreTitle').textContent = `Page ${pages.length} scanned`;
+    $('moreNo').textContent = `Finish and save (${pages.length} ${pages.length===1?'page':'pages'})`;
+    $('moreBox').hidden = false; $('hint').textContent='Waiting for you: next page or finish.';
+    const done = v => { $('moreBox').hidden = true; $('moreYes').onclick = $('moreNo').onclick = null; res(v); };
+    $('moreYes').onclick = () => done(true); $('moreNo').onclick = () => done(false);
+    if (autoPilot){ const want = pages.length < autoPilot.pages; const b = want ? $('moreYes') : $('moreNo');
+      setTimeout(()=>{ b.classList.add('pulse'); setTimeout(()=>{ b.classList.remove('pulse'); done(want); }, 600); }, 1100*SPEED); }
+  });
+}
+function showError(title, body, actLabel, act){
+  $('errTitle').textContent=title; $('errBody').textContent=body; $('errAct').textContent=actLabel; $('errBox').hidden=false;
+  return new Promise(res => { $('errAct').onclick=()=>{ $('errBox').hidden=true; res(true); act&&act(); }; $('errClose').onclick=()=>{ $('errBox').hidden=true; res(false); }; });
+}
+
+/* ---------- scan pipeline ---------- */
+async function connect(){
+  status(`Connecting to saned at ${HOST}:${PORT}…`, 'busy', 0);
+  log(`SANE_NET_INIT → ${HOST}:${PORT} user=${APP.user}`);
+  await sleep(450);
+  if (!connected){
+    await sleep(1600); log(`No reply from ${HOST}:${PORT} after 5 s`, 'err');
+    status('Scanner offline', 'err', 0);
+    showError('Scanner not reachable', `There was no answer from saned at ${HOST} on port ${PORT}. Check that the server is on and saned is running, then try again. Your settings and folder are kept.`, 'Retry', () => { connected = true; log('Connection restored', 'ok'); renderAll(); runScan(); });
+    return false;
+  }
+  log(`SANE_NET_OPEN ${DEV}`, 'ok');
+  return true;
+}
+async function scanPage(p, idx, preview=false){
+  const area = docArea(p); const res = preview ? APP.pres : p.res;
+  const scale = preview ? APP.pres/150 : 1;
+  const cw = Math.max(8, Math.round(area.w*scale)), ch = Math.max(8, Math.round(area.h*scale));
+  log(`set resolution=${res} mode="${p.mode}" br-x=${SIZES[p.size].w} br-y=${SIZES[p.size].h} brightness=${p.bright} contrast=${p.contrast}`);
+  status(preview?'Preview: warming up the lamp…':`Page ${idx+1}: warming up the lamp…`, 'busy', 0);
+  await sleep(preview?300:700);
+  const cv = document.createElement('canvas'); cv.width=cw; cv.height=ch;
+  const kind = p.size==='Business card' ? 'letter' : p.doc;
+  const rects = drawDoc(cv.getContext('2d'), cw, ch, kind, idx);
+  processImg(cv, p);
+  log(preview ? `SANE_NET_START (preview, ${APP.pres} dpi)` : `SANE_NET_START page ${idx+1}`);
+  const total = rawBytes(Object.assign({}, p, {res}));
+  const dur = preview ? 1100 : Math.min(5200, 1400 + total/1048576*90);
+  await animateScan(cv, area, dur, k => status(preview?`Preview: receiving image…`:`Page ${idx+1}: receiving ${fmtMB(total*k)} of ${fmtMB(total)}`, 'busy', k), preview);
+  lastShown = {cv, w:area.w, h:area.h, rects, scale: area.w/cw};
+  log(preview ? 'Preview done' : `Page ${idx+1} received, ${fmtMB(total)}`, 'ok');
+  return {cv, w:area.w, h:area.h, rects};
+}
+async function runOCR(p){
+  for (let i=0;i<pages.length;i++){
+    const pg = pages[i]; const s = pg.w/pg.cv.width;
+    showPage(pg);
+    status(`Recognizing text on page ${i+1} of ${pages.length}…`, 'busy', 0);
+    const step = Math.max(1, Math.floor(pg.rects.length/18));
+    for (let r=0;r<pg.rects.length;r+=step){
+      for (let q=r;q<Math.min(r+step,pg.rects.length);q++){ const [x,y,w,h]=pg.rects[q]; vctx.strokeStyle='rgba(47,91,211,.95)'; vctx.lineWidth=2; vctx.strokeRect(x*s-2,y*s-2,w*s+4,h*s+4); }
+      status(`Recognizing text on page ${i+1} of ${pages.length}…`, 'busy', (r+step)/pg.rects.length);
+      await sleep(55);
+    }
+    const words = pg.rects.length*7 + 11;
+    log(`OCR page ${i+1}: ${words} words found (Tesseract, ${APP.ocrlang})`, 'ok');
+  }
+}
+function showPage(pg){ platenBase(); vctx.drawImage(pg.cv, 0, 0, pg.w, pg.h); }
+
+async function saveAll(p){
+  const T = TYPES[p.type];
+  let folder = p.folder;
+  if (!FOLDERS.has(folder)){
+    if (p.create){ FOLDERS.add(folder); log(`Folder ${folder} didn't exist, so it was created`, 'warn'); }
+    else {
+      log(`Folder ${folder} doesn't exist`, 'err'); status('Not saved: folder is missing', 'err', 0);
+      const again = await showError('Folder not found', `${folder} doesn't exist. Choose another folder with Change…, or turn on "Create the folder if it's missing", then save again. The ${pages.length} scanned ${pages.length===1?'page is':'pages are'} kept.`, 'Save again');
+      if (again) return saveAll(prof()); return false;
+    }
+  }
+  if (T.ocr) await runOCR(p);
+  const groups = T.multi ? [pages] : pages.map(pg=>[pg]);
+  const out = [];
+  for (const g of groups){
+    folderCounters[folder] = (folderCounters[folder]||0) + 1;
+    let name = buildName(p, folderCounters[folder]);
+    const taken = n => saved.some(s => s.folder===folder && s.name===n);
+    if (taken(name)){ const dot=name.lastIndexOf('.'); let k=2; while (taken(name.slice(0,dot)+` (${k})`+name.slice(dot))) k++; const nn=name.slice(0,dot)+` (${k})`+name.slice(dot); log(`${name} already exists, saving as ${nn}`, 'warn'); name=nn; }
+    status(`Writing ${name}…`, 'busy', 1);
+    await sleep(500);
+    const rec = {name, folder, pages:g.length, size:fileBytes(p, g.length), time:clock(now()), fresh:true};
+    saved.push(rec); out.push(rec);
+    log(`Saved ${folder}\\${name} (${g.length} ${g.length===1?'page':'pages'}, ${fmtMB(rec.size)})`, 'ok');
+  }
+  renderSaved();
+  const first = out[0];
+  toast(`<b>Saved ${out.length>1? out.length+' files' : ''}</b><br><span class="mono">${(first.folder+'\\'+first.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>${out.length>1?'<br>and '+(out.length-1)+' more':''}`);
+  const after = {none:null, folder:`Opened ${folder} in Explorer`, open:`Opened ${first.name} in the default viewer`, mail:`New e-mail created with ${first.name} attached`}[p.after];
+  if (after){ await sleep(400); log(after); }
+  return true;
+}
+
+async function runScan(){
+  if (busy) return; const p = prof(); setBusy(true);
+  $('errBox').hidden = true; pages = []; renderTray();
+  try{
+    if (!(await connect())) return;
+    let more = true;
+    while (more){
+      const pg = await scanPage(p, pages.length);
+      pages.push(pg); renderTray();
+      more = p.multi ? await askMore() : false;
+      if (more) showIdle();
+    }
+    log('SANE_NET_CLOSE');
+    const ok = await saveAll(p);
+    if (ok){ status(`Done. ${pages.length} ${pages.length===1?'page':'pages'} saved to ${p.folder}`, 'ok', 1); pages = []; renderTray(); }
+  } finally {
+    setBusy(false); renderAll(); $('hint').textContent='Place the document face down, top-left corner on the arrow.';
+  }
+}
+async function runPreview(){
+  if (busy) return; setBusy(true);
+  try{ if (await connect()){ await scanPage(prof(), 0, true); log('SANE_NET_CLOSE'); status('Preview ready. Nothing was saved.', 'ok', 1); } }
+  finally{ setBusy(false); renderAll(); }
+}
+$('scanBtn').onclick = () => { autoPilot = null; runScan(); };
+$('prevBtn').onclick = runPreview;
+
+/* ---------- scenarios ---------- */
+const SCEN = [
+  {k:'1', label:'One page to PDF', note:'Scan to File: one page in True Gray at 300 dpi, saved as a PDF in D:\\Scans\\Documents, then the folder opens.',
+    run:async()=>{ active='file'; Object.assign(P.file, DEFAULTS.file); renderAll(); autoPilot={pages:1}; await runScan(); }},
+  {k:'2', label:'Three-page letter, one PDF', note:'Scan to File: after each page the app asks for the next one. Three pages end up in a single PDF.',
+    run:async()=>{ active='file'; Object.assign(P.file, DEFAULTS.file); renderAll(); autoPilot={pages:3}; await runScan(); }},
+  {k:'3', label:'Photo at 600 dpi to JPEG', note:'Scan to Image: an A5 colour photo at 600 dpi, saved straight to D:\\Scans\\Images as a JPEG and opened.',
+    run:async()=>{ active='image'; Object.assign(P.image, DEFAULTS.image); renderAll(); autoPilot={pages:1}; await runScan(); }},
+  {k:'4', label:'Searchable PDF in a new folder', note:'Scan to OCR: two invoice pages go through text recognition. D:\\Scans\\OCR doesn\'t exist yet, so it is created on save.',
+    run:async()=>{ active='ocr'; Object.assign(P.ocr, DEFAULTS.ocr); renderAll(); autoPilot={pages:2}; await runScan(); }},
+  {k:'5', label:'File name already taken', note:'The name pattern is "Contract_{date}" with no counter. The second scan gets " (2)" added, so nothing is overwritten.',
+    run:async()=>{ active='file'; Object.assign(P.file, DEFAULTS.file, {pattern:'Contract_{date}', after:'none'}); renderAll(); autoPilot={pages:1}; await runScan(); await sleep(700); await runScan(); }},
+  {k:'6', label:'Scanner offline', note:'saned isn\'t answering. The app explains what to check and offers Retry. In this simulation, Retry brings the connection back.',
+    run:async()=>{ active='email'; Object.assign(P.email, DEFAULTS.email); connected=false; renderAll(); autoPilot={pages:1}; await runScan(); }},
+];
+SCEN.forEach(s => { const b=document.createElement('button'); b.className='scen-btn'; b.innerHTML=`<span class="k">${s.k}</span><span></span>`; b.lastChild.textContent=s.label;
+  b.onclick = async () => { if (busy) return; $('scenNote').textContent = s.note; $('app').scrollIntoView({behavior: RM?'auto':'smooth', block:'start'}); await s.run(); autoPilot=null; };
+  $('scenRow').appendChild(b); });
+
+/* ---------- boot: show a realistic resting state ---------- */
+(function seed(){
+  const ex = [['File_2026-11-04_091214.pdf','D:\\Scans\\Documents',2,612000,'09:12:14'],['Photo_2026-11-03_001.jpg','D:\\Scans\\Images',1,3480000,'18:40:51']];
+  ex.forEach(([name,folder,pg,size,time]) => saved.push({name,folder,pages:pg,size,time,fresh:false}));
+  folderCounters['D:\\Scans\\Images'] = 1;
+  log('Loaded settings from C:\\Users\\TSL\\sanetwain.ini');
+  log(`Device ${DEV} on ${HOST}:${PORT}`);
+  log('Two example files from earlier are listed below', 'warn');
+  const p = P.file; const area = docArea(p); const cv=document.createElement('canvas'); cv.width=area.w; cv.height=area.h;
+  const rects = drawDoc(cv.getContext('2d'), area.w, area.h, 'letter', 0); processImg(cv, p); lastShown={cv,w:area.w,h:area.h,rects};
+  showIdle(); renderAll(); renderSaved(); renderTray();
+})();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (!busy) showIdle(); });
+})();
+</script>

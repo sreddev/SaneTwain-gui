@@ -1,0 +1,453 @@
+<title>SaneTwain Scan Center Icons</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: icon concept picker → size sheet (app, taskbar, tray, Store) → a Windows 11 desktop with the app window, taskbar and tray working together. */
+:root{
+  --page:#eef0f4; --card:#ffffff; --card2:#f6f7f9; --stroke:#e1e4ea; --fg:#1b1f27; --muted:#5f6878; --faint:#8a93a3;
+  --accent:#2f6fe4; --accent-fg:#fff; --sel:#2f6fe4;
+  --f-ui:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  --f-disp:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Cascadia Mono",Consolas,ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page:#0d0f13; --card:#1a1d24; --card2:#22262e; --stroke:#323844; --fg:#e9ecf2; --muted:#a3abba; --faint:#7d8696;
+  --accent:#6aa2ff; --accent-fg:#0b1426; --sel:#6aa2ff; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --page:#0d0f13; --card:#1a1d24; --card2:#22262e; --stroke:#323844; --fg:#e9ecf2; --muted:#a3abba; --faint:#7d8696;
+  --accent:#6aa2ff; --accent-fg:#0b1426; --sel:#6aa2ff; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--fg);font-family:var(--f-ui);font-size:14px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:24px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--f-disp);margin:0;text-wrap:balance}
+h1{font-size:26px;font-weight:600}
+h2{font-size:17px;font-weight:600}
+.lede{color:var(--muted);max-width:72ch;margin:6px 0 0}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* concept picker */
+.concepts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.concept{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:16px 14px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left}
+.concept:hover{border-color:var(--faint)}
+.concept[aria-pressed="true"]{border-color:var(--sel);box-shadow:inset 0 0 0 1px var(--sel)}
+.concept .big{width:88px;height:88px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+.concept h3{font-size:15px}
+.concept p{margin:0;color:var(--muted);font-size:12.5px}
+.concept .tag{font-family:var(--f-mono);font-size:11px;color:var(--faint)}
+
+/* size sheet */
+.sheet{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.cell{padding:6px 14px;display:flex;flex-direction:column;gap:10px;border-right:1px solid var(--stroke);min-width:0}
+.cell:last-child{border-right:none}
+.sizes{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.sizes figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.sizes figcaption{font-family:var(--f-mono);font-size:10.5px;color:var(--faint)}
+.bar{display:flex;align-items:center;gap:10px;border-radius:8px;padding:8px 12px;height:44px}
+.bar.dark{background:#1c1c1c;color:#fff;--acc-a:#ff8a00;--acc-b:#ffd400;--acc-c:#3d9bff;--acc-d:#ffc400}
+.bar.light{background:#f3f3f3;color:#111;border:1px solid #e3e3e3;--acc-a:#c25400;--acc-b:#8f6400;--acc-c:#0058d6;--acc-d:#a86f00}
+.bar .clock{margin-left:auto;font-size:11px;text-align:right;line-height:1.2}
+.trayic{position:relative;width:16px;height:16px;display:inline-block}
+.trayic svg{width:16px;height:16px;display:block}
+.badge{position:absolute;right:-3px;bottom:-3px;width:7px;height:7px;border-radius:50%;border:1.5px solid currentColor;display:none}
+.badge.on{display:block}
+.st-row{display:flex;gap:14px;align-items:center;font-size:11px;color:inherit}
+.tile150{width:120px;height:120px;border-radius:6px;display:grid;place-items:center;background:linear-gradient(140deg,#2b3446,#1b2130)}
+.tile150 svg{width:64px;height:64px}
+.storecard{display:flex;gap:10px;align-items:center;background:var(--card2);border:1px solid var(--stroke);border-radius:8px;padding:10px}
+.storecard svg{width:48px;height:48px;flex:none}
+.storecard b{display:block;font-size:13px}
+.storecard span{font-size:11.5px;color:var(--muted)}
+.cell .lab{font-size:12px;color:var(--muted)}
+
+/* ---------- desktop simulation ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--stroke);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{border:none;background:none;padding:6px 12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.controls .lab{font-size:12px;color:var(--muted);margin-right:6px}
+
+.desk{position:relative;height:600px;border-radius:12px;overflow:hidden;border:1px solid var(--stroke);
+  background:radial-gradient(120% 90% at 20% 10%,#3b4d7a 0%,#1d2540 45%,#0f1424 100%)}
+.desk::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 80% 70%,rgba(110,90,200,.45),transparent 70%)}
+
+/* the app window (dark by default) */
+.win{position:absolute;left:4%;top:5%;width:92%;height:calc(100% - 48px - 9%);border-radius:8px;overflow:hidden;
+  background:#202020;color:#e9ecf2;box-shadow:0 30px 80px -20px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08);
+  display:flex;flex-direction:column;transition:transform .25s ease, opacity .25s ease, inset .25s ease, width .25s ease, height .25s ease, border-radius .25s;
+  transform-origin:50% 120%;font-size:12.5px;
+  --w-text:#e9ecf2; --w-card:#2b2b2b; --w-card2:#323232; --w-stroke:#3a3a3a; --w-div:#383838; --w-muted:#a8a8a8; --w-faint:#7f7f7f; --w-accent:#6aa2ff;
+  --mica:linear-gradient(180deg,#232634,#1f2128 40%,#202020)}
+.win.max{left:0;top:0;width:100%;height:calc(100% - 48px);border-radius:0}
+.win.min{transform:translateY(60%) scale(.2);opacity:0;pointer-events:none}
+.win.closed{opacity:0;transform:scale(.96);pointer-events:none}
+.win.light{background:#f3f3f3;color:#1b1f27;--w-text:#1b1f27;--w-card:#ffffff;--w-card2:#fafafa;--w-stroke:#e5e5e5;--w-div:#e0e0e0;--w-muted:#5f6878;--w-faint:#8a93a3;--w-accent:#2f6fe4;
+  --mica:linear-gradient(180deg,#eef1f8,#f3f3f3 40%)}
+
+/* title bar */
+.tb{display:flex;align-items:stretch;height:44px;flex:none;background:var(--mica);border-bottom:1px solid var(--w-div);user-select:none}
+.tb .left{display:flex;align-items:center;gap:10px;padding-left:14px;min-width:0;flex:1}
+.tb .appic{width:18px;height:18px;flex:none}
+.tb .title{font-weight:600;font-size:13px;white-space:nowrap}
+.tb .pill{display:flex;align-items:center;gap:6px;margin-left:14px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--w-stroke);
+  font-family:var(--f-mono);font-size:11px;color:var(--w-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.win.light .tb .pill{background:rgba(0,0,0,.03)}
+.tb .pill i{width:7px;height:7px;border-radius:50%;background:#4cc38a;flex:none}
+.tb .set{align-self:center;margin:0 8px 0 auto;border:1px solid var(--w-stroke);background:var(--w-card2);border-radius:6px;padding:4px 10px;display:flex;gap:6px;align-items:center;font-size:12px;white-space:nowrap}
+.cap{display:flex;flex:none}
+.cap button{width:46px;border:none;background:transparent;display:grid;place-items:center;color:inherit;transition:background .1s}
+.cap button svg{width:10px;height:10px}
+.cap button:hover{background:rgba(255,255,255,.08)}
+.win.light .cap button:hover{background:rgba(0,0,0,.06)}
+.cap button.close:hover{background:#c42b1c;color:#fff}
+.cap button:active{opacity:.8}
+/* standard (non-immersive) chrome for comparison */
+.stdbar{display:none;height:32px;flex:none;align-items:stretch;background:#f3f3f3;color:#111;border-bottom:1px solid #e5e5e5}
+.stdbar .t{display:flex;align-items:center;gap:8px;padding-left:10px;flex:1;font-size:12px}
+.stdbar .cap button:hover{background:rgba(0,0,0,.06)}
+.stdbar .cap button.close:hover{background:#c42b1c;color:#fff}
+.win.std .stdbar{display:flex}
+.win.std .tb .cap{display:none}
+.win.std .tb{height:46px;background:inherit}
+
+/* window body (simplified app) */
+.wb{flex:1;display:grid;grid-template-columns:230px minmax(0,1fr);min-height:0}
+.sidebar{border-right:1px solid var(--w-div);padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.sidetitle{display:flex;gap:8px;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--w-div)}
+.sidetitle .ib{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:rgba(245,192,79,.18);color:#f5c04f}
+.sidetitle .ib svg{width:16px;height:16px}
+.grp{background:var(--w-card);border:1px solid var(--w-stroke);border-radius:7px;overflow:hidden}
+.grp b{display:block;padding:6px 9px;background:var(--w-card2);border-bottom:1px solid var(--w-stroke);font-size:11.5px}
+.grp div{display:flex;justify-content:space-between;padding:5px 9px;border-bottom:1px solid var(--w-stroke);color:var(--w-muted);font-size:11px;gap:8px}
+.grp div:last-child{border-bottom:none}
+.grp div span:last-child{color:inherit;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.right{display:flex;flex-direction:column;min-width:0}
+.tiles{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--w-div);flex-wrap:wrap}
+.t{width:74px;height:48px;border-radius:7px;border:1px solid var(--w-stroke);background:var(--w-card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;font-weight:600;color:inherit}
+.t svg{width:16px;height:16px}
+.t em{font-style:normal;color:var(--w-text)}
+.t.add em{color:var(--w-muted)}
+.t.on{border-color:#f5c04f;background:rgba(245,192,79,.14);box-shadow:inset 0 -2px 0 #f5c04f}
+.t.add{border-style:dashed;background:transparent;color:var(--w-muted);font-weight:400}
+.tool{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--w-div)}
+.tool .p{background:var(--w-accent);color:#0b1426;border-radius:5px;padding:5px 12px;font-weight:600;font-size:11.5px}
+.win.light .tool .p{color:#fff}
+.tool .s{border:1px solid var(--w-stroke);border-radius:5px;padding:4px 10px;font-size:11.5px}
+.glass{flex:1;margin:10px;border-radius:8px;border:1px solid var(--w-stroke);background:var(--w-card);display:grid;place-items:center;min-height:0;padding:10px}
+.glass .g{height:100%;max-height:260px;aspect-ratio:215.9/297;border-radius:5px;background:#11151b;position:relative;overflow:hidden;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:12.5% 9.09%}
+.glass .paper{position:absolute;left:0;top:0;width:97%;height:0;background:#fafaf7}
+.glass .lamp{position:absolute;left:0;right:0;height:18px;margin-top:-9px;background:linear-gradient(transparent,rgba(255,214,150,.9),transparent);display:none}
+.wstatus{display:flex;gap:8px;align-items:center;padding:5px 10px;border-top:1px solid var(--w-div);font-size:11px;color:var(--w-muted)}
+.wstatus i{width:7px;height:7px;border-radius:50%;background:#4cc38a}
+
+/* taskbar */
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:48px;display:flex;align-items:center;justify-content:center;
+  background:rgba(32,32,32,.86);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);color:#fff;z-index:5;
+  --acc-a:#ff8a00;--acc-b:#ffd400;--acc-c:#3d9bff;--acc-d:#ffc400}
+.desk.tlight .taskbar{background:rgba(243,243,243,.9);color:#111;border-top-color:rgba(0,0,0,.08);--acc-a:#c25400;--acc-b:#8f6400;--acc-c:#0058d6;--acc-d:#a86f00}
+.tbtn{width:40px;height:40px;border-radius:6px;display:grid;place-items:center;border:none;background:transparent;position:relative}
+.tbtn:hover{background:rgba(255,255,255,.08)}
+.desk.tlight .tbtn:hover{background:rgba(0,0,0,.05)}
+.tbtn svg{width:24px;height:24px}
+.tbtn .ind{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);height:3px;width:6px;border-radius:2px;background:#9aa0a6;transition:width .2s}
+.tbtn.active .ind{width:16px;background:#6aa2ff}
+.tbtn.gone .ind{display:none}
+.startic{width:20px;height:20px;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.startic i{background:#4aa3ff;border-radius:1px}
+.tray{position:absolute;right:8px;top:0;bottom:0;display:flex;align-items:center;gap:2px}
+.tray .ti{height:36px;min-width:30px;border-radius:5px;display:grid;place-items:center;border:none;background:transparent;color:inherit;padding:0 6px}
+.tray .ti:hover{background:rgba(255,255,255,.08)}
+.desk.tlight .tray .ti:hover{background:rgba(0,0,0,.05)}
+.tray .clk{font-size:11px;line-height:1.25;text-align:right;padding:0 8px}
+.tray svg.sys{width:16px;height:16px}
+
+.menu{position:absolute;right:70px;bottom:56px;width:230px;border-radius:8px;background:#2c2c2c;color:#f2f2f2;box-shadow:0 16px 40px -10px rgba(0,0,0,.7);
+  border:1px solid rgba(255,255,255,.08);padding:4px;display:none;z-index:6;font-size:12.5px}
+.desk.tlight .menu{background:#f9f9f9;color:#111;border-color:rgba(0,0,0,.08)}
+.menu.open{display:block}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:none;padding:7px 10px;border-radius:5px}
+.menu button:hover{background:rgba(255,255,255,.08)}
+.desk.tlight .menu button:hover{background:rgba(0,0,0,.05)}
+.menu hr{border:none;border-top:1px solid rgba(127,127,127,.3);margin:4px 2px}
+.menu svg{width:16px;height:16px;flex:none}
+.toast{position:absolute;right:12px;bottom:58px;width:330px;max-width:calc(100% - 24px);border-radius:8px;background:#2c2c2c;color:#f2f2f2;padding:12px 14px;
+  display:flex;gap:12px;box-shadow:0 16px 40px -10px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.08);z-index:7;transition:opacity .25s, transform .25s}
+.desk.tlight .toast{background:#f9f9f9;color:#111}
+.toast.hide{opacity:0;transform:translateY(10px);pointer-events:none}
+.toast svg{width:32px;height:32px;flex:none}
+.toast b{display:block;font-size:13px}
+.toast span{font-size:12px;opacity:.8;word-break:break-all}
+
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.note{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.note p{margin:0;color:var(--muted);font-size:13px}
+
+@media (max-width:900px){
+  .concepts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sheet{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px}
+  .cell:nth-child(2){border-right:none}
+  .notes{grid-template-columns:minmax(0,1fr)}
+  .wb{grid-template-columns:minmax(0,1fr)} .sidebar{display:none}
+  .tb .pill{display:none}
+}
+@media (max-width:520px){ .sheet{grid-template-columns:minmax(0,1fr)} .cell{border-right:none} .desk{height:520px} .tb .title{font-size:12px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a8cff"/><stop offset="1" stop-color="#2447b8"/></linearGradient>
+    <linearGradient id="gB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#36404f"/><stop offset="1" stop-color="#1a1f28"/></linearGradient>
+    <linearGradient id="gBeam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#5ee2f5" stop-opacity=".9"/><stop offset="1" stop-color="#5ee2f5" stop-opacity="0"/></linearGradient>
+    <linearGradient id="gC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16c2b0"/><stop offset="1" stop-color="#2f62e0"/></linearGradient>
+    <linearGradient id="gD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d3a66"/><stop offset="1" stop-color="#18203d"/></linearGradient>
+    <linearGradient id="gGlow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffbe5c" stop-opacity="0"/><stop offset=".5" stop-color="#ffbe5c" stop-opacity=".55"/><stop offset="1" stop-color="#ffbe5c" stop-opacity="0"/></linearGradient>
+
+    <!-- A · Bold page: white page and orange scan bar on near-black (page 18.9:1, bar 8:1) -->
+    <symbol id="app-a" viewBox="0 0 64 64">
+      <rect x="2" y="2" width="60" height="60" rx="15" fill="#0f1115"/>
+      <rect x="17" y="9" width="30" height="40" rx="3.5" fill="#ffffff"/>
+      <rect x="22" y="16" width="20" height="3.4" rx="1.7" fill="#0f1115"/><rect x="22" y="23" width="14" height="3.4" rx="1.7" fill="#0f1115"/>
+      <rect x="7" y="35" width="50" height="7" rx="3.5" fill="#ff8a00"/>
+    </symbol>
+    <!-- B · Electric frame: thick white corners and yellow line on deep blue (white 8.7:1, yellow 6.1:1) -->
+    <symbol id="app-b" viewBox="0 0 64 64">
+      <rect x="2" y="2" width="60" height="60" rx="15" fill="#1238c7"/>
+      <path d="M12 24 V15 a3 3 0 0 1 3-3 H24 M40 12 H49 a3 3 0 0 1 3 3 V24 M52 40 V49 a3 3 0 0 1 -3 3 H40 M24 52 H15 a3 3 0 0 1 -3-3 V40" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="9" y="29" width="46" height="6" rx="3" fill="#ffd400"/>
+    </symbol>
+    <!-- C · Scanner block: black flatbed on white with a blue beam (body 18.9:1) -->
+    <symbol id="app-c" viewBox="0 0 64 64">
+      <rect x="2" y="2" width="60" height="60" rx="15" fill="#ffffff"/>
+      <rect x="2.5" y="2.5" width="59" height="59" rx="14.5" fill="none" stroke="#d0d4dc"/>
+      <path d="M9 30 L50 13 L54 21 L13 37 Z" fill="#111111"/>
+      <rect x="8" y="38" width="48" height="16" rx="4.5" fill="#111111"/>
+      <rect x="14" y="44" width="36" height="4.5" rx="2.25" fill="#2f8bff"/>
+    </symbol>
+    <!-- D · Folder drop: black folder with white arrow on amber (folder 11.8:1) -->
+    <symbol id="app-d" viewBox="0 0 64 64">
+      <rect x="2" y="2" width="60" height="60" rx="15" fill="#ffc400"/>
+      <path d="M8 19 a4 4 0 0 1 4-4 H25 l5 5 H52 a4 4 0 0 1 4 4 V47 a4 4 0 0 1 -4 4 H12 a4 4 0 0 1 -4-4 Z" fill="#111111"/>
+      <path d="M32 25 V41 M24.5 34 L32 41.5 L39.5 34" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+
+    <!-- Tray glyphs, 16 × 16: solid shapes in the taskbar text colour (17:1) with one accent;
+         accents get a darker shade on a light taskbar so they stay readable. -->
+    <symbol id="tray-a" viewBox="0 0 16 16"><rect x="3.5" y="1" width="9" height="12.5" rx="1.3" fill="currentColor"/><rect x="1" y="8" width="14" height="3" rx="1.5" fill="var(--acc-a, #ff8a00)"/></symbol>
+    <symbol id="tray-b" viewBox="0 0 16 16"><path d="M1.6 5.4 V2.9 a1.3 1.3 0 0 1 1.3-1.3 H5.4 M10.6 1.6 H13.1 a1.3 1.3 0 0 1 1.3 1.3 V5.4 M14.4 10.6 V13.1 a1.3 1.3 0 0 1 -1.3 1.3 H10.6 M5.4 14.4 H2.9 a1.3 1.3 0 0 1 -1.3-1.3 V10.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="1" y="6.7" width="14" height="2.6" rx="1.3" fill="var(--acc-b, #ffd400)"/></symbol>
+    <symbol id="tray-c" viewBox="0 0 16 16"><path d="M1.5 7.2 L12.6 2.6 L13.8 5 L2.7 9.4 Z" fill="currentColor"/><rect x="1.3" y="9.6" width="13.4" height="5" rx="1.4" fill="currentColor"/><rect x="3.6" y="11.4" width="8.8" height="1.5" rx=".75" fill="var(--acc-c, #2f8bff)"/></symbol>
+    <symbol id="tray-d" viewBox="0 0 16 16"><path d="M1 4.2 a1.2 1.2 0 0 1 1.2-1.2 H6 l1.4 1.4 H13.8 a1.2 1.2 0 0 1 1.2 1.2 V12.8 a1.2 1.2 0 0 1 -1.2 1.2 H2.2 a1.2 1.2 0 0 1 -1.2-1.2 Z" fill="currentColor"/><path d="M8 6.6 V11.2 M5.9 9.2 L8 11.3 L10.1 9.2" fill="none" stroke="var(--acc-d, #ffc400)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+
+    <!-- scan button icons (outline) -->
+    <symbol id="b-file" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a2 2 0 0 1 2-2h6l2.5 3H26a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M16 14.5v7M12.8 18.5l3.2 3.2 3.2-3.2"/></symbol>
+    <symbol id="b-image" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="24" height="20" rx="3"/><circle cx="11.5" cy="12.5" r="2.5"/><path d="M5 23l7-7 5 5 3.5-3.5L27 24"/></symbol>
+    <symbol id="b-ocr" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10V7a2 2 0 0 1 2-2h3M22 5h3a2 2 0 0 1 2 2v3M27 22v3a2 2 0 0 1-2 2h-3M10 27H7a2 2 0 0 1-2-2v-3"/><path d="M11 11h10M16 11v11"/></symbol>
+    <symbol id="b-mail" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7" width="21" height="16" rx="2.5"/><path d="M4.5 8.5l9.5 7 9.5-7"/><path d="M22 25h7M26 22l3 3-3 3"/></symbol>
+    <symbol id="b-copy" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12V5h11l3 3v4"/><rect x="4" y="12" width="24" height="10" rx="2.5"/><path d="M9 19h14v8H9z"/></symbol>
+    <symbol id="b-plus" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 8v16M8 16h16"/></symbol>
+    <symbol id="cap-min" viewBox="0 0 10 10"><path d="M0 5.5h10" stroke="currentColor" stroke-width="1"/></symbol>
+    <symbol id="cap-max" viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor"/></symbol>
+    <symbol id="cap-res" viewBox="0 0 10 10"><rect x=".5" y="2.5" width="7" height="7" rx="1.2" fill="none" stroke="currentColor"/><path d="M2.5 2.5V1.8a1.3 1.3 0 0 1 1.3-1.3h4.4a1.3 1.3 0 0 1 1.3 1.3v4.4a1.3 1.3 0 0 1-1.3 1.3H7.5" fill="none" stroke="currentColor"/></symbol>
+    <symbol id="cap-x" viewBox="0 0 10 10"><path d="M.5.5l9 9M9.5.5l-9 9" stroke="currentColor" stroke-width="1"/></symbol>
+    <symbol id="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Proposal · nothing changed in the app yet</div>
+    <h1>SaneTwain Scan Center Icons</h1>
+    <p class="lede">Four new high-contrast app-icon concepts: bold shapes, few colours and no gradients, so they stay sharp at 16 px. Each is shown at every size Windows uses: the taskbar, Start, the notification area (tray) and the Store. Below them is a Windows 11 desktop running the app with an immersive title bar. The window's minimize, maximize and close buttons sit inside the app's own dark header instead of a separate white bar. Pick a concept and it's used everywhere on this page.</p>
+  </header>
+
+  <section class="concepts" id="concepts" aria-label="Icon concepts"></section>
+
+  <section class="sheet" aria-label="Sizes">
+    <div class="cell">
+      <span class="eyebrow">App icon sizes</span>
+      <div class="sizes" id="sizes"></div>
+    </div>
+    <div class="cell">
+      <span class="eyebrow">Notification area (tray)</span>
+      <div class="bar dark"><span class="trayic" id="trD1"></span><span class="trayic" style="color:#fff" id="trD2"></span><span class="trayic" id="trD3"></span><span class="clock">15:30<br>04/11/2026</span></div>
+      <div class="bar light"><span class="trayic" id="trL1"></span><span class="trayic" id="trL2"></span><span class="trayic" id="trL3"></span><span class="clock">15:30<br>04/11/2026</span></div>
+      <span class="lab">Left to right: ready, scanning (amber dot), offline (red dot). Solid shapes in the taskbar's text colour (17:1). The accent darkens on a light taskbar.</span>
+    </div>
+    <div class="cell">
+      <span class="eyebrow">Start menu tile</span>
+      <div class="tile150" id="tile150"></div>
+      <span class="lab" id="tileName">SaneTwain Scan Center</span>
+    </div>
+    <div class="cell">
+      <span class="eyebrow">Store listing</span>
+      <div class="storecard"><span id="storeIc"></span><div><b>SaneTwain Scan Center</b><span>Scan from SANE network scanners straight to your folders</span></div></div>
+      <span class="lab">Also used for the window title bar (18 px) and Alt+Tab.</span>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:10px">
+    <h2>On the desktop</h2>
+    <div class="controls">
+      <div><span class="lab">Title bar</span><span class="seg" role="group" aria-label="Title bar style"><button id="tb-imm" aria-pressed="true">Immersive (proposed)</button><button id="tb-std" aria-pressed="false">Standard (now)</button></span></div>
+      <div><span class="lab">App theme</span><span class="seg" role="group" aria-label="App theme"><button id="ap-dark" aria-pressed="true">Dark</button><button id="ap-light" aria-pressed="false">Light</button></span></div>
+      <div><span class="lab">Taskbar</span><span class="seg" role="group" aria-label="Taskbar theme"><button id="tk-dark" aria-pressed="true">Dark</button><button id="tk-light" aria-pressed="false">Light</button></span></div>
+    </div>
+    <p class="lede" style="margin:0">Try the window buttons: minimize goes to the taskbar, maximize fills the screen, and close keeps the app running in the tray. Click the tray icon to open the window again, or right-click it for the scan buttons.</p>
+
+    <div class="desk" id="desk">
+      <div class="win" id="win">
+        <div class="stdbar"><div class="t"><svg class="appic" style="width:16px;height:16px"><use class="appuse" href="#app-a"/></svg>SaneTwain Scan Center</div>
+          <div class="cap"><button data-act="min" aria-label="Minimize"><svg><use href="#cap-min"/></svg></button><button data-act="max" aria-label="Maximize"><svg><use class="maxuse" href="#cap-max"/></svg></button><button class="close" data-act="close" aria-label="Close"><svg><use href="#cap-x"/></svg></button></div></div>
+        <div class="tb" id="tb">
+          <div class="left">
+            <svg class="appic"><use class="appuse" href="#app-a"/></svg>
+            <span class="title">SaneTwain Scan Center</span>
+            <span class="pill"><i></i>Brother DCP-150C · brother2:bus1;dev1 · 192.168.254.1:6566</span>
+            <button class="set"><svg width="14" height="14"><use href="#gear"/></svg>Settings</button>
+          </div>
+          <div class="cap"><button data-act="min" aria-label="Minimize"><svg><use href="#cap-min"/></svg></button><button data-act="max" aria-label="Maximize"><svg><use class="maxuse" href="#cap-max"/></svg></button><button class="close" data-act="close" aria-label="Close"><svg><use href="#cap-x"/></svg></button></div>
+        </div>
+        <div class="wb">
+          <aside class="sidebar">
+            <div class="sidetitle"><span class="ib"><svg><use href="#b-file"/></svg></span><div><div class="eyebrow" style="font-size:9.5px">Settings for</div><b>Scan to File</b></div></div>
+            <div class="grp"><b>Destination</b><div><span>Folder</span><span>…\Scans\Documents</span></div><div><span>File name</span><span>{profile}_{date}_{time}</span></div><div><span>File type</span><span>PDF</span></div></div>
+            <div class="grp"><b>Scan quality</b><div><span>Resolution</span><span>300 dpi</span></div><div><span>Size</span><span>A4</span></div><div><span>Scan type</span><span>True Gray</span></div></div>
+            <div class="grp"><b>When the scan ends</b><div><span>More pages</span><span>Ask</span></div><div><span>Then</span><span>Show in folder</span></div></div>
+          </aside>
+          <div class="right">
+            <div class="tiles">
+              <span class="t on" style="color:#f5c04f"><svg><use href="#b-file"/></svg><em>File</em></span>
+              <span class="t" style="color:#d68af0"><svg><use href="#b-image"/></svg><em>Image</em></span>
+              <span class="t" style="color:#94afd6"><svg><use href="#b-ocr"/></svg><em>OCR</em></span>
+              <span class="t" style="color:#6db6ff"><svg><use href="#b-mail"/></svg><em>E-mail</em></span>
+              <span class="t" style="color:#4fd1c2"><svg><use href="#b-copy"/></svg><em>Copy</em></span>
+              <span class="t add"><svg><use href="#b-plus"/></svg><em>Custom</em></span>
+            </div>
+            <div class="tool"><span class="p">Scan to File</span><span class="s">Preview</span><span style="color:var(--w-muted);font-size:11px">Place the document face down…</span></div>
+            <div class="glass"><div class="g"><div class="paper" id="paper"></div><div class="lamp" id="lamp"></div></div></div>
+            <div class="wstatus"><i></i><span id="wst">Ready</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu" id="menu" role="menu">
+        <button data-m="open"><svg><use class="appuse" href="#app-a"/></svg>Open SaneTwain Scan Center</button>
+        <hr>
+        <button data-m="File" style="--c:#f5c04f"><svg style="color:#f5c04f"><use href="#b-file"/></svg>Scan to File</button>
+        <button data-m="Image"><svg style="color:#d68af0"><use href="#b-image"/></svg>Scan to Image</button>
+        <button data-m="OCR"><svg style="color:#94afd6"><use href="#b-ocr"/></svg>Scan to OCR</button>
+        <button data-m="E-mail"><svg style="color:#6db6ff"><use href="#b-mail"/></svg>Scan to E-mail</button>
+        <button data-m="Copy"><svg style="color:#4fd1c2"><use href="#b-copy"/></svg>Copy</button>
+        <hr>
+        <button data-m="quit">Quit</button>
+      </div>
+      <div class="toast hide" id="toast" role="status"><svg><use class="appuse" href="#app-a"/></svg><div><b id="toastT"></b><span id="toastB"></span></div></div>
+
+      <div class="taskbar">
+        <button class="tbtn" aria-label="Start"><span class="startic"><i></i><i></i><i></i><i></i></span></button>
+        <button class="tbtn" aria-label="File Explorer"><svg viewBox="0 0 24 24"><path d="M2 7a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#f5c04f"/></svg></button>
+        <button class="tbtn active" id="tkApp" aria-label="SaneTwain Scan Center"><svg><use class="appuse" href="#app-a"/></svg><span class="ind"></span></button>
+        <div class="tray">
+          <span class="ti" aria-hidden="true">⌃</span>
+          <button class="ti" id="trayBtn" aria-label="SaneTwain Scan Center (notification area)"><span class="trayic"><svg><use class="trayuse" href="#tray-a"/></svg><span class="badge" id="trayBadge"></span></span></button>
+          <span class="ti" aria-hidden="true"><svg class="sys" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1.5 6a9 9 0 0 1 13 0M3.7 8.4a6 6 0 0 1 8.6 0M6 10.8a3 3 0 0 1 4 0"/><circle cx="8" cy="13" r=".8" fill="currentColor"/></svg></span>
+          <span class="ti" aria-hidden="true"><svg class="sys" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5.5a3.5 3.5 0 0 1 0 5"/></svg></span>
+          <span class="clk">15:30<br>04/11/2026</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <div class="note"><h3>Immersive title bar</h3><p>The window's own title bar goes away. The app header becomes the title bar: icon, name, scanner status, Settings, then minimize, maximize and close in the Windows 11 style. Close turns red on hover. Dragging the header moves the window, and double-clicking it maximizes. Snap layouts appear on the maximize button.</p></div>
+    <div class="note"><h3>Tray icon with status</h3><p>A 16-pixel glyph made for the notification area, not a shrunken app icon. Its outline follows the taskbar's light or dark colour. A small dot shows scanning (amber) or offline (red). Right-click it for the scan buttons. A notification appears when a file is saved.</p></div>
+    <div class="note"><h3>One concept everywhere</h3><p>The chosen concept becomes the .ico (16 to 256 px), the Store and Start logos, the title bar icon and the tray glyph. The scan button icons inside the app stay as they are.</p></div>
+  </section>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const C = [
+  {k:'a', name:'Bold page', idea:'A white page crossed by a thick orange scan bar on near-black. The current idea, pushed to maximum contrast.', tag:'page 18.9:1 · bar 8:1'},
+  {k:'b', name:'Electric frame', idea:'Heavy white capture corners and a yellow scan line on deep blue. No small details, so it reads even at 16 px.', tag:'white 8.7:1 · yellow 6.1:1'},
+  {k:'c', name:'Scanner block', idea:'A solid black flatbed, lid up, on a white tile with a blue light strip. Stands out on dark taskbars and wallpapers.', tag:'body 18.9:1'},
+  {k:'d', name:'Folder drop', idea:'A black folder with a white arrow on bright amber. The "straight to folder" promise in two shapes.', tag:'folder 11.8:1'},
+];
+let cur = 'a';
+const use = (id, cls='') => `<svg${cls?` class="${cls}"`:''}><use href="#${id}"/></svg>`;
+
+function renderConcepts(){
+  const box = $('concepts'); box.innerHTML = '';
+  for (const c of C){
+    const b = document.createElement('button'); b.className='concept'; b.setAttribute('aria-pressed', c.k===cur);
+    b.innerHTML = `<svg class="big"><use href="#app-${c.k}"/></svg><div><span class="eyebrow">Concept ${c.k.toUpperCase()}</span><h3></h3></div><p></p><span class="tag"></span>`;
+    b.querySelector('h3').textContent = c.name; b.querySelector('p').textContent = c.idea; b.querySelector('.tag').textContent = c.tag;
+    b.onclick = () => { cur = c.k; apply(); };
+    box.appendChild(b);
+  }
+}
+function apply(){
+  renderConcepts();
+  $('sizes').innerHTML = [96,48,32,24,16].map(s => `<figure><svg width="${s}" height="${s}"><use href="#app-${cur}"/></svg><figcaption>${s}</figcaption></figure>`).join('');
+  $('tile150').innerHTML = use(`app-${cur}`);
+  $('storeIc').innerHTML = use(`app-${cur}`);
+  const tray = (id, color, badge) => { $(id).innerHTML = `<svg style="color:${color}"><use href="#tray-${cur}"/></svg><span class="badge${badge?' on':''}" style="background:${badge||'transparent'};color:${color==='#fff'?'#1c1c1c':'#f3f3f3'}"></span>`; };
+  tray('trD1','#fff'); tray('trD2','#fff','#f5b04f'); tray('trD3','#fff','#e5534b');
+  tray('trL1','#111'); tray('trL2','#111','#d98a1a'); tray('trL3','#111','#c42b1c');
+  document.querySelectorAll('.appuse').forEach(u => u.setAttribute('href', `#app-${cur}`));
+  document.querySelectorAll('.trayuse').forEach(u => u.setAttribute('href', `#tray-${cur}`));
+}
+
+/* window behaviour */
+const win = $('win'), tk = $('tkApp'), menu = $('menu');
+let toastTimer;
+function toast(t, b){ $('toastT').textContent=t; $('toastB').textContent=b; $('toast').classList.remove('hide'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>$('toast').classList.add('hide'),4200); }
+function show(){ win.classList.remove('min','closed'); tk.classList.remove('gone'); tk.classList.add('active'); }
+document.querySelectorAll('.cap button').forEach(b => b.onclick = () => {
+  const a = b.dataset.act;
+  if (a==='min'){ win.classList.add('min'); tk.classList.remove('active'); }
+  if (a==='max'){ win.classList.toggle('max'); document.querySelectorAll('.maxuse').forEach(u => u.setAttribute('href', win.classList.contains('max')?'#cap-res':'#cap-max'));
+    document.querySelectorAll('[data-act="max"]').forEach(x => x.setAttribute('aria-label', win.classList.contains('max')?'Restore':'Maximize')); }
+  if (a==='close'){ win.classList.add('closed'); tk.classList.add('gone'); tk.classList.remove('active');
+    toast('SaneTwain Scan Center is still running', 'Click the icon next to the clock to open it. Right-click it to scan or to quit.'); }
+});
+$('tb').addEventListener('dblclick', e => { if (!e.target.closest('button')) win.querySelector('[data-act="max"]').click(); });
+tk.onclick = () => { if (win.classList.contains('closed')) return; if (win.classList.contains('min')) show(); else { win.classList.add('min'); tk.classList.remove('active'); } };
+$('trayBtn').onclick = e => { e.stopPropagation(); menu.classList.remove('open'); show(); };
+$('trayBtn').oncontextmenu = e => { e.preventDefault(); e.stopPropagation(); menu.classList.toggle('open'); };
+$('trayBtn').addEventListener('keydown', e => { if (e.key==='ContextMenu' || (e.shiftKey && e.key==='F10')){ e.preventDefault(); menu.classList.add('open'); menu.querySelector('button').focus(); } });
+$('desk').addEventListener('click', e => { if (!e.target.closest('#menu')) menu.classList.remove('open'); });
+menu.querySelectorAll('button').forEach(b => b.onclick = () => {
+  menu.classList.remove('open');
+  const m = b.dataset.m;
+  if (m==='open') return show();
+  if (m==='quit'){ win.classList.add('closed'); tk.classList.add('gone'); $('trayBtn').style.visibility='hidden';
+    setTimeout(()=>{ $('trayBtn').style.visibility='visible'; show(); }, 1600); return; }
+  show(); scan(m);
+});
+function scan(name){
+  const badge = $('trayBadge'); badge.className='badge on'; badge.style.background='#f5b04f';
+  const paper=$('paper'), lamp=$('lamp'); lamp.style.display='block'; $('wst').textContent=`${name}: scanning…`;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, dur = reduce?300:2200, t0=performance.now();
+  (function f(t){ const k=Math.min(1,(t-t0)/dur); paper.style.height=(k*100)+'%'; lamp.style.top=(k*100)+'%';
+    if(k<1) return requestAnimationFrame(f);
+    lamp.style.display='none'; badge.className='badge';
+    const file = name==='Copy' ? 'Sent to Brother DCP-150C Printer_LAN' : `${name==='E-mail'?'Mail':name==='Image'?'Photo':name}_2026-11-04_153012.${name==='Image'?'jpg':'pdf'}`;
+    $('wst').textContent = name==='Copy' ? 'Copy sent to the printer' : `Saved ${file}`;
+    toast(name==='Copy' ? 'Copy sent' : 'Scan saved', name==='Copy' ? file : `${file}\nDocuments\\Scans`);
+  })(t0);
+}
+// title bar / theme switches
+const seg = (on, off) => { $(on).setAttribute('aria-pressed','true'); $(off).setAttribute('aria-pressed','false'); };
+$('tb-imm').onclick = () => { win.classList.remove('std'); seg('tb-imm','tb-std'); };
+$('tb-std').onclick = () => { win.classList.add('std'); seg('tb-std','tb-imm'); };
+$('ap-dark').onclick = () => { win.classList.remove('light'); seg('ap-dark','ap-light'); };
+$('ap-light').onclick = () => { win.classList.add('light'); seg('ap-light','ap-dark'); };
+$('tk-dark').onclick = () => { $('desk').classList.remove('tlight'); seg('tk-dark','tk-light'); };
+$('tk-light').onclick = () => { $('desk').classList.add('tlight'); seg('tk-light','tk-dark'); };
+apply();
+})();
+</script>

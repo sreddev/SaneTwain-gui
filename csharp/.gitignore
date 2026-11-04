@@ -1,0 +1,7 @@
+bin/
+obj/
+artifacts/
+packaging/dev-cert.pfx
+packaging/dev-cert.cer
+*.user
+.vs/

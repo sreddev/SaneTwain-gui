@@ -90,8 +90,12 @@ The title bar then shows the scanner and a green dot. A red dot means the server
    - press **Finish and save** to write the file now.
 
    **Discard pages** throws the scanned pages away. Right-click a page thumbnail to remove only that page.
-5. The file is saved straight into the button's folder. It appears under **Saved files**, and then the
-   button's after-save action runs.
+5. What happens next depends on the button's **Write file to disk** setting:
+   - **On:** the file is saved straight into the button's folder as soon as the scan ends.
+   - **Off** (the default): nothing is written yet. The pages wait in the tray and the bar shows
+     **Save file**. Press it to write the file, or scan more pages, or discard them.
+
+   Once saved, the file appears under **Saved files**, and then the button's after-save action runs.
 
 **Preview** (F5) does a quick low-resolution pass so you can check the page's position. Nothing is saved.
 
@@ -132,6 +136,9 @@ belongs to the chosen button and is saved automatically.
 - The note at the bottom estimates how much data each page is.
 
 **When the scan ends**
+- **Write file to disk:** set separately for each button, and off by default. When on, the file is saved
+  automatically as soon as the scan ends. When off, the pages wait until you press **Save file**. It doesn't
+  apply to a button that only prints (*Print it* without *Also save a file*).
 - **Ask for another page after each scan:** for documents with several pages.
 - **Then:**
   - **Do nothing else**

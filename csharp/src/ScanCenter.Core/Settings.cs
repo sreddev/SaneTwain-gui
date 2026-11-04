@@ -65,6 +65,8 @@ public sealed class Profile
     public AfterSave After { get; set; } = AfterSave.ShowInFolder;
     public bool CreateFolder { get; set; } = true;
     public bool SaveFile { get; set; } = true;
+    /// <summary>Write the file as soon as the scan ends. Off: the pages wait in the tray until Save file is clicked.</summary>
+    public bool WriteToDisk { get; set; }
     /// <summary>Icon for the button; empty means the built-in icon for its key.</summary>
     public string IconKey { get; set; } = "";
 

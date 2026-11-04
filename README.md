@@ -8,7 +8,8 @@ saves straight into its own folder as soon as the scan ends.
 
 - **One click per job.** Each scan button has its own folder, file name pattern, file type, resolution,
   scan type and after-save action (show in folder, open, e-mail, print).
-- **No Save dialog.** Files are written when the scan finishes. Missing folders are created, and nothing
+- **No Save dialog.** With **Write file to disk** ticked (per button), files are written as soon as the
+  scan finishes. Otherwise one click on **Save file** writes them. Missing folders are created, and nothing
   is overwritten.
 - **PDF, searchable PDF (Windows OCR), TIFF, JPEG and PNG.** Multi-page documents from the glass or a document feeder.
 - **Windows 11 native.** Fluent design, dark by default, immersive title bar with snap layouts, a

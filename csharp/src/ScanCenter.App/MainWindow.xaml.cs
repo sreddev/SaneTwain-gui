@@ -355,6 +355,7 @@ public partial class MainWindow : Window
         MultiBox.Click += (_, _) => Set(p => p.AskMorePages = MultiBox.IsChecked == true);
         AfterBox.SelectionChanged += (_, _) => { if (AfterBox.SelectedItem is ComboBoxItem i) Set(p => p.After = (AfterSave)i.Tag); };
         SaveFileBox.Click += (_, _) => Set(p => p.SaveFile = SaveFileBox.IsChecked == true);
+        WriteToDiskBox.Click += (_, _) => Set(p => p.WriteToDisk = WriteToDiskBox.IsChecked == true);
     }
 
     private void Set(Action<Profile> change)
@@ -433,6 +434,7 @@ public partial class MainWindow : Window
         MultiBox.IsChecked = p.AskMorePages;
         Select(AfterBox, p.After);
         SaveFileBox.IsChecked = p.SaveFile;
+        WriteToDiskBox.IsChecked = p.WriteToDisk;
         _loading = false;
         RefreshDerived();
     }
@@ -472,6 +474,10 @@ public partial class MainWindow : Window
             el.IsEnabled = savingOn;
         MissingFolder.Visibility = !exists && savingOn ? Visibility.Visible : Visibility.Collapsed;
         if (!savingOn) NamePreview.Text = "No file is saved; pages only go to the printer.";
+        WriteToDiskBox.IsEnabled = savingOn;
+        WriteToDiskNote.Text = !savingOn ? "Not used: this button only prints."
+            : p.WriteToDisk ? "The file is saved as soon as the scan ends."
+            : "The pages wait in the tray until you click Save file.";
         if (printing)
         {
             var where = _s.Printer.Length > 0 ? _s.Printer : $"the Windows default printer ({Printing.DefaultPrinterName()})";
@@ -709,7 +715,7 @@ public partial class MainWindow : Window
             if (!failed) { _session = null; UpdateActions(); }
             return;
         }
-        if (failed || cancelled || p.AskMorePages) AskMore();
+        if (failed || cancelled || p.AskMorePages || WaitsForSave(p)) AskMore();
         else await FinishSessionAsync();
     }
 
@@ -721,20 +727,35 @@ public partial class MainWindow : Window
         if (_session!.After == AfterSave.Print && !_s.PrintWaitForAllPages) PrintPages(_pages.Skip(_printed).ToList(), _session);
     }
 
+    /// <summary>"Write file to disk" is off: the scan ends with the pages waiting for Save file. Print-only buttons never wait.</summary>
+    private static bool WaitsForSave(Profile p) => !p.WriteToDisk && !(p.After == AfterSave.Print && !p.SaveFile);
+
     private void AskMore()
     {
         int n = _pages.Count;
-        MoreTitle.Text = $"{n} {(n == 1 ? "page" : "pages")} scanned";
+        var pagesText = $"{n} {(n == 1 ? "page" : "pages")}";
+        bool waitSave = _session != null && WaitsForSave(_session);
+        MoreTitle.Text = waitSave ? $"{pagesText} scanned, not saved yet" : $"{pagesText} scanned";
         MoreText.Text = _feederSession
             ? "Load more pages into the feeder and scan them, or finish to save the file now."
             : "Place the next page on the glass and scan it, or finish to save the file now.";
+        if (waitSave)
+            MoreText.Text = "Write file to disk is off for this button, so nothing has been saved yet. Click Save file to write it to "
+                + $"{Naming.ExpandFolder(_session!.Folder)}, scan more pages, or discard them.";
         MoreYes.Content = _feederSession ? "Scan more pages" : "Scan next page";
-        MoreNo.Content = $"Finish and save ({n} {(n == 1 ? "page" : "pages")})";
-        if (_session?.After == AfterSave.Print && !_session.SaveFile) MoreNo.Content = $"Finish ({n} {(n == 1 ? "page" : "pages")})";
+        MoreNo.Content = waitSave ? $"Save file ({pagesText})" : $"Finish and save ({pagesText})";
+        if (_session?.After == AfterSave.Print && !_session.SaveFile) MoreNo.Content = $"Finish ({pagesText})";
+        // When saving is the expected next step, make Save file the main button.
+        bool saveFirst = waitSave && _session?.AskMorePages == false;
+        var accent = (Style)FindResource("AccentButtonStyle");
+        if (saveFirst) { MoreYes.ClearValue(StyleProperty); MoreNo.Style = accent; }
+        else { MoreYes.Style = accent; MoreNo.ClearValue(StyleProperty); }
         MoreBar.Visibility = Visibility.Visible;
-        SetStatus("Waiting: scan the next page or finish", "ok", 1);
+        SetStatus(waitSave ? "Scan finished: click Save file to write it to disk" : "Waiting: scan the next page or finish", "ok", 1);
         UpdateActions();
-        MoreYes.Focus();
+        if (saveFirst) MoreNo.Focus(); else MoreYes.Focus();
+        if (waitSave && (!IsVisible || WindowState == WindowState.Minimized))
+            _notify?.ShowBalloonTip(5000, "Scan finished, not saved yet", $"{pagesText} waiting. Open Scan Center and click Save file.", WinForms.ToolTipIcon.Info);
     }
 
     private void Discard_Click(object sender, RoutedEventArgs e)

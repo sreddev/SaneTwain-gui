@@ -216,6 +216,14 @@
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource GroupRow}">
+                                    <StackPanel>
+                                        <CheckBox x:Name="WriteToDiskBox" Content="Write file to disk"
+                                                  ToolTip="On: the file is saved in the folder as soon as the scan ends. Off: the pages wait until you click Save file." />
+                                        <TextBlock x:Name="WriteToDiskNote" FontSize="12" TextWrapping="Wrap" Margin="28,2,0,0"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource GroupRow}">
                                     <CheckBox x:Name="MultiBox" Content="Ask for another page after each scan" />
                                 </Border>
                                 <Border Style="{StaticResource GroupRowLast}">
